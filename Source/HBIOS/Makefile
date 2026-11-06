@@ -45,6 +45,7 @@ DIST_ROMS := \
 	SZ80_t35_std \
 	MSX_std \
 	MECB_std \
+	MZ800_std \
 	UNA_std
 
 #	MON_std
