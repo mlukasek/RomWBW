@@ -8631,7 +8631,7 @@ HB_UTIL_BEG	.EQU	$
 ;
 ; INCLUDE LZSA2 decompression engine if required.
 ;
-#IF ((CVDUENABLE | GDCENABLE | TMSENABLE | VGAENABLE | VRCENABLE) & USELZSA2)
+#IF ((CVDUENABLE | GDCENABLE | TMSENABLE | VGAENABLE | VRCENABLE | MZVENABLE) & USELZSA2)
 #INCLUDE "unlzsa2s.asm"
 #ENDIF
 ;
@@ -9068,7 +9068,7 @@ FNT_SELECT1:
 	AND	$80			; COMPRESSED FONT DATA?
 	JR	Z,FNT_SELECT2		; IF NOT, SKIP DECOMP
 ;
-#IF ((CVDUENABLE | GDCENABLE | TMSENABLE | VGAENABLE | VRCENABLE) & USELZSA2)
+#IF ((CVDUENABLE | GDCENABLE | TMSENABLE | VGAENABLE | VRCENABLE | MZVENABLE) & USELZSA2)
 ;
 ; DECOMPRESS THE FONT DATA.  WE USURP $E000-$EFFF AS A BUFFER FOR THE
 ; DECOMPRESSED DATA.  IF THE FONT DATA IS IN ROM, WE FIRST COPY THE
@@ -9567,6 +9567,7 @@ HB_MODSTART	.EQU	$
 ;  - VRC
 ;  - TVGA
 ;  - XOS
+;  - MZV
 ;
 #IF (VDUENABLE)
   #INCLUDE "vdu.asm"
@@ -9604,6 +9605,10 @@ HB_MODSTART	.EQU	$
   #INCLUDE "xosera.asm"
 #ENDIF
 ;
+#IF (MZVENABLE)
+  #INCLUDE "mzv.asm"
+#ENDIF
+;
 ;--------------------------------------------------------------------------------------------------
 ;   KEYBOARD MODULES
 ;--------------------------------------------------------------------------------------------------
@@ -9613,6 +9618,7 @@ HB_MODSTART	.EQU	$
 ;  - NABUKBD
 ;  - PPK
 ;  - USBKYB
+;  - MZK
 ;
 #IF (KBDENABLE)
   #INCLUDE "kbd.asm"
@@ -9632,6 +9638,10 @@ HB_MODSTART	.EQU	$
 ;
 #IF (USBKYBENABLE)
   #INCLUDE "usbkyb.asm"
+#ENDIF
+;
+#IF (MZKENABLE)
+  #INCLUDE "mzkbd.asm"
 #ENDIF
 ;
 ;--------------------------------------------------------------------------------------------------
