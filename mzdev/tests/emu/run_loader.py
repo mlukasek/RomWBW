@@ -13,6 +13,7 @@ started. Checks:
 import os
 import shutil
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools', 'emu'))
@@ -75,6 +76,14 @@ def test_boot(memext):
         check(('MEMEXT: PEHU 512K' if memext == 'PEHU' else 'MEMEXT: LUFTNER 512K') in screen, 'MemExt type shown')
         lines = run_console.wait_for(emu, sym, 'Boot [H=Help]:', 1500, 20)
         check(any('Boot [H=Help]:' in l for l in lines), 'HBIOS boot loader prompt after loading')
+        # the RTC driver reads the card clock at init (its message comes before the console exists, so it is not
+        # on the screen) and registers as the HBIOS RTC: check its buffer (BCD YYMMDDHHMMSS) in the HBIOS bank
+        today = time.strftime('%y%m%d')
+        buf = emu.memext_read(sym['UCRTC_BUF'], 6).hex()
+        check(buf[:6] == today, 'Unicard RTC read at init: %s (today %s)' % (buf, today))
+        disp = emu.memext_read(sym['RTC_DISPADR'], 2) if 'RTC_DISPADR' in sym else None
+        if disp is not None:
+            check(int.from_bytes(disp, 'little') == sym['UCRTC_DISPATCH'], 'Unicard RTC is the HBIOS RTC')
         run_console.type_text(emu, 'z\r')
         lines = run_console.wait_for(emu, sym, 'A>')
         run_console.type_text(emu, 'dir\r')

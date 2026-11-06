@@ -70,7 +70,19 @@
   - **Ověřeno** (`run_loader.py`): PEHU i Lüftner (náhodná RAM) až po `DIR` s utilitami, chyba bez MemExt, chyba bez
     souboru.
   - **Připraveno na 1. test na reálném HW:** návod v [test-hw.md](test-hw.md).
-- **Další krok:** RTC z Unikarty (`ucrtc.asm`) a RAM disk Unikarty (`ucrd.asm`), potom etapa 4 (disketový řadič).
+- **RTC z Unikarty je hotové:** `Source/HBIOS/ucrtc.asm` (modul UCRTC, `RTCDEV_UC` = $0C, `UCRTCENABLE`).
+  - Čte 62h/63h (binárně), převádí na BCD `YYMMDDHHMMSS`, roky 1980–2079. Čas se čte před datem i po něm, aby
+    nevadila půlnoc.
+  - Nastavuje přes 60h/61h. NVRAM ani alarm karta nemá.
+  - **Ověřeno** (`run_loader.py`): po startu je v `UCRTC_BUF` dnešní datum a ovladač je RTC HBIOS.
+  - **ZSDOS:** `TD.COM` hlásí „NO Clock Driver“, protože ZSDOS potřebuje ovladač hodin nahraný přes `LDDS.COM` (RSX
+    `wbwclk`, používá HBIOS RTC). `LDDS.COM` je na diskových obrazech RomWBW, v obrazu RAM disku není.
+- **Ztracené rané hlášky:**
+  - Moduly před MZV (CPU, paměť, UCRTC…) a banner HBIOS píšou do konzole dřív, než existuje, takže na obrazovce
+    nejsou. Vidět je až od MZV dál.
+  - **Řešení na později:** vlastní jednoduchá znaková jednotka v PREINIT MZV jako boot konzole. Po INIT se konzole
+    přepne na TERM (CRTACT).
+- **Další krok:** RAM disk Unikarty (`ucrd.asm`), potom etapa 4 (disketový řadič).
 
 ## Build
 
