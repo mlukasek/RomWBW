@@ -68,6 +68,10 @@ def main():
         check('Boot [H=Help]:' in screen, 'boot loader prompt on screen')
         check('TERM0:' in screen and 'MZV0:' in screen and 'Text,80x25' in screen, 'TERM0 on MZV0, 80x25 text')
         check('MD0:' in screen and '256KB' in screen, 'MD0 RAM disk 256KB')
+        t0 = int.from_bytes(emu.memext_read(sym['HB_TICKS'], 4), 'little')
+        emu.run(100)
+        t1 = int.from_bytes(emu.memext_read(sym['HB_TICKS'], 4), 'little')
+        check(95 <= t1 - t0 <= 105, 'system tick from VBLN: %d ticks in 100 frames' % (t1 - t0))
         type_text(emu, 'z\r')
         lines = wait_for(emu, sym, 'A>')
         screen = '\n'.join(lines)
@@ -76,6 +80,14 @@ def main():
         type_text(emu, 'dir\r')
         lines = wait_for(emu, sym, 'No File', 300)
         check(any('No File' in l for l in lines), 'DIR on the empty RAM disk says No File')
+        emu.key('X', 60, 5)                  # held 1.2 s: first repeat after 0.5 s, then every 3 ticks
+        prompt = [l for l in screen_text(emu, sym) if l.startswith('A>')][-1]
+        count = prompt.count('x')
+        check(10 <= count <= 25, 'auto-repeat: X held 60 frames gives %d characters' % count)
+        for _ in range(count):
+            emu.key('DEL', 2, 2)             # DEL = backspace: erase them again
+        prompt = [l for l in screen_text(emu, sym) if l.startswith('A>')][-1]
+        check(prompt.rstrip() == 'A>', 'DEL (backspace) erases the line')
         for _ in range(12):
             type_text(emu, '\r')
         lines = wait_for(emu, sym, 'A>', 100)

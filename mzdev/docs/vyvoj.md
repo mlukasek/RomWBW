@@ -52,8 +52,15 @@
     - `z` → `ZSDOS v1.1, 54.0K TPA`, `A>`;
     - `DIR` na RAM disku;
     - scroll.
-- **Další krok:** časovač z VBLN (Z80 PIO PA5, IM2), autorepeat a odrušení klávesnice z tiku, pak etapa 3 (zavaděč
-  MZF z Unikarty, RTC, RAM disk Unikarty).
+- **Etapa 2 je hotová (2026-11-06): časovač a klávesnice z tiku.**
+  - **Časovač:** `INTMODE=2`, `MZVTIMENABLE`, typ `TM_MZV` (8) v `std.asm`.
+    - Z80 PIO kanál A v bitovém režimu, přerušení při sestupu PA5 (VBLN), vektor `INT_PIO0A`.
+    - Kanál B má přerušení vypnutá, 8253 je zamaskovaný přes 8255 PC2=0.
+  - **Klávesnice:** sken matice na každém tiku (háček `VEC_TICK`), fronta 8 kláves, autorepeat po 0,5 s, pak každé 3
+    tiky.
+  - **Ověřeno:** 100 tiků za 100 snímků, podržené X dá 13 znaků, DEL maže.
+- **Další krok, etapa 3:** zavaděč MZF z Unikarty (`Source/MZ800/`, s detekcí MemExt a hláškou), RTC z Unikarty, RAM
+  disk Unikarty.
 
 ## Build
 
