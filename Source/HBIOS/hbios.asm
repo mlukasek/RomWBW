@@ -9687,6 +9687,10 @@ HB_MODSTART	.EQU	$
   #INCLUDE "fd.asm"
 #ENDIF
 ;
+#IF (MZFDENABLE)
+  #INCLUDE "mzfd.asm"
+#ENDIF
+;
 ;
 #IF (RFENABLE)
   #INCLUDE "rf.asm"
