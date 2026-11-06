@@ -30,6 +30,14 @@ Co nejde ověřit v emulátoru. Odpovědi zapisovat sem s datem a pak promítnou
   - **Strana:** DDh bit 0 = 1 je fyzická strana 1 (podle emulátoru a ROM MZ-1E05). Sedí to?
   - **Bez diskety v mechanice:** detekce čeká na timeout ≈ 2 × 3,7 s. Hlásí se to rozumně (chyba výběru disku)?
   - **Výměna diskety:** CP/M ji pozná až po ^C (nové přihlášení jednotky). Detekce běží při každém přihlášení.
+- **Boot z diskety a formátování (od 2026-11-07):**
+  - **IPL v ROM MZ-800 v normálním režimu:** hlavička s načtením i startem na $1200 (Lamač používá ROM-replace).
+    Je to v ROM MZ-800 stejné jako v ROM MZ-1E05?
+  - **WRITE TRACK dotazováním:** 66 T na bajt, 99 T na konci běhu. První bajt musí přijít do 3 bajtových časů po
+    příkazu (zavaděč čeká jen na BUSY).
+  - **Stopa 9 × 512:** GAP 4a 80, GAP 1 50, GAP 2 22, GAP 3 84, prokládání jako FORMAT4. Bootovací stopa 16 × 256
+    s GAP 3 50. Vejde se to na stopu a přečte to Lamač?
+  - **Rychlost zavaděče IPL:** sektory v logickém pořadí, odhad 11 KB/s.
 
 ## Video a vstupy
 

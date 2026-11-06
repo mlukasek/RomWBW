@@ -61,6 +61,50 @@ HD mechaniky, zatím se čte jen DD).
    - jak dlouho trvá `DIR` a kopie (pro odhad rychlosti krokování);
    - co udělá `DIR` na mechanice bez diskety (mělo by to po pár sekundách skončit chybou).
 
+## 3. test: boot z diskety, MZSYS, MZFMT (od 2026-11-07)
+
+**Potřeba:** totéž jako 2. test. Bootovací disketa vznikne jedním ze dvou způsobů:
+
+- **Gotek:** obraz z PC.
+
+  ```
+  python mzdev/tools/mzdsk.py mkboot boot.dsk 720 --sys Binary/ZSDOS/zsys_wbw.sys --file Binary/Apps/mzsys.com --file Binary/Apps/mzfmt.com --file Binary/ZSDOS/zsys_wbw.sys=ZSYS.SYS
+  ```
+
+  (`ROMWBW.ROM` = `MZ800_std.rom` se přidá sám, `--image Binary/MZ800_std.upd` dá rychlejší boot bez utilit na
+  RAM disku.)
+- **Na stroji, po startu RomWBW z Unikarty:** prázdná 720K disketa naformátovaná v Lamačově CP/M (nebo
+  `MZFMT C:`), pak:
+
+  ```
+  MZSYS C:
+  COPY C:ROMWBW.ROM=<kde je obraz>
+  SYSCOPY C:=ZSYS.SYS
+  ```
+
+  Obraz (`MZ800_std.rom` nebo `.upd`) a `ZSYS.SYS` se na stroj dostanou zatím jen přes RAM disk Unikarty: na PC je
+  do obrazu RAM disku zapíše cpmtools (`mz_ucrd_0`). `MZSYS.COM` a `MZFMT.COM` taky.
+
+**Postup:**
+
+1. Disketu do mechaniky 0, zapnout. ROM má ukázat „IPL IS LOADING ROMWBW“, pak textová obrazovka zavaděče:
+
+   ```
+   ROMWBW FLOPPY LOADER FOR SHARP MZ-800
+   MEMEXT: PEHU 512K
+   LOADING ............
+   ```
+
+2. Pak menu romldr. `1` (FD0) nabootuje ZSDOS z diskety, `A:=FD0:0`. `Z` nabootuje ZSDOS z obrazu.
+3. `MZFMT C:` na prázdné disketě (Y potvrdí), pak `DIR C:` (prázdný), `MZSYS C:`.
+4. Disketu naformátovanou přes MZFMT zkusit v Lamačově CP/M (DIR, zápis).
+
+**Co poslat zpět:**
+
+- **Boot:** jak dlouho trvá načtení (odhad: `.rom` asi 35 s, `.upd` asi 12 s), případné hlášky „DISK ERROR“;
+- **MZFMT:** zda formátuje bez chyb a zda disketu přečte Lamač (formát stopy, mezery GAP, prokládání);
+- **romldr z FD0:** boot bez chyb.
+
 ## Mapování kláves (zatím)
 
 | Klávesa MZ-800 | CP/M |

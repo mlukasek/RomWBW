@@ -105,3 +105,17 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
   příkaz bez dat.
 - **Krok jen SEEK s r=00, bez ověření:** 6 ms na všech řadičích v DD. Lamač krokuje po jednom s časováním
   v softwaru, to je zatím zbytečné.
+
+### Boot z diskety (technické, 2026-11-06)
+
+- **Obraz RomWBW je na disketě obyčejný soubor `ROMWBW.ROM`**, ne systémová oblast: HBIOS i s romldr má 128 KB,
+  rezervované stopy jen 18 KB. Zavaděč na bootovací stopě (16 × 256 B) čte adresář CP/M.
+  - **Výhoda:** disketa zůstává normální datovou disketou Lamače i RomWBW.
+  - Obraz se vyměňuje kopií souboru.
+- **Rezervované stopy diskety MZ se mapují tak, aby systém pro romldr (27 sektorů) minul bootovací stopu.**
+  Romldr, SYSCOPY i CBIOS zůstávají beze změny a disk boot RomWBW funguje i na disketě s IPL.
+- **Bootovací stopa je přes HBIOS vidět jako log. stopa 3** bez negace dat. MZSYS tak nepotřebuje přímý přístup
+  k řadiči a nekoliduje s ovladačem (motor, stopa pod hlavou).
+- **DIODEFMED bit 7 = rozložení MZ:** HBIOS má pro médium jen MID a rozložení se jinak nedá předat. Je to
+  rozšíření jen pro MZ-800, ostatní ovladače DEFMED neimplementují.
+- **MZFMT formátuje přes HBIOS DIOFORMAT** a stopu streamuje ze seznamu běhů (žádný 6 KB buffer).

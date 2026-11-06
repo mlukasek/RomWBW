@@ -140,7 +140,60 @@
   - **Lamačovy obrazy DSK:** systémová disketa 4.1 má prázdný adresář. Obraz s programy
     (`MFDC800T/DSK/CPMv41 Prg CPM.dsk`) má poškozenou hlavičku (stopa 46/0 hlásí 79/0, dvě stopy chybí), soubory na
     nižších válcích jsou ale v pořádku.
-- **Další krok, etapa 5:** IPL boot z diskety (`mzipl`), `MZSYS`, `MZFMT`, DIOFORMAT.
+- **Etapa 5, boot z diskety (2026-11-06):**
+  - **Zavaděč IPL** `Source/MZ800/mzipl.asm` → `Binary/mz800-ipl.bin` (4096 B = bootovací stopa).
+    - **Hlavička IPLPRO:** jméno „ROMWBW“, velikost, načtení i start na $1200, první logický sektor 1.
+    - **Za skokem na $1200 jsou parametry:** „RWB“, formát (0 = 720K, 1 = 360K), dvojitý krok, jméno souboru
+      (11 B jako v adresáři).
+    - **Zavaděč** přepne do režimu MZ-700, detekuje MemExt a přesune se do společné banky.
+    - Přečte adresář CP/M z mechaniky 0 a nahraje soubor `ROMWBW.ROM` (uživatel 0) po extentech a blocích do bank
+      $80…, nejvýš 12. Pak spustí HBIOS.
+    - **Čtení dotazováním** jako v `mzfd.asm`. 5 pokusů, chyba se vypíše s C/H/S a statusem.
+    - **Společný kód** se zavaděčem z Unikarty je v `Source/MZ800/mzcommon.asm` (MemExt, přesun, text, start
+      HBIOS).
+  - **Rozložení MZ v `mzfd.asm`:** detekce čte ID na válci 0 / straně 1. N = 1 (256 B) znamená disketu Lamače
+    (`MZFD_MZL`).
+    - Rezervované stopy se pak mapují: log. 0 = válec 0 / strana 0, 1 = válec 1 / 0, 2 = válec 1 / 1.
+    - **Log. stopa 3 = bootovací stopa:** sektor S (0–7) jsou její sektory 2S+1 a 2S+2 po 256 B, bez CPL a bez
+      porovnání strany. Je to přesně pohled ROM, takže MZSYS zapisuje IPL přes HBIOS.
+    - Prvních 27 sektorů (`zsys_wbw.sys` má přesně 13 824 B) tak bootovací stopu nezasáhne a romldr i SYSCOPY
+      fungují beze změny. Datová oblast se nemění.
+  - **`MZSYS.COM`** (`Source/MZ800/mzsys.asm` → `Binary/Apps/mzsys.com`, obraz IPL je vložený `#INCLUDE`):
+    - `MZSYS D: [JMENO.EXT]`;
+    - kontroluje RomWBW (`HB_IDENT` na $FFFC), CP/M 2.2 a DPB (SPT 36, DSM 350 nebo 170);
+    - rozložení MZ pozná tak, že stopa 3 má 1. sektor, ale ne 9.;
+    - zapíše 32 záznamů na stopu 3 přes BIOS, jako SYSCOPY.
+  - **`mzdsk.py mkboot`:** bootovací DSK (IPL, `ROMWBW.ROM`, volitelně systém do rezervovaných stop a další
+    soubory přes cpmtools).
+  - **Ověřeno** (`run_ipl.py`):
+    - reset s bootovací disketou: zavaděč IPL, 12 bank, menu romldr;
+    - `1` (FD0) nabootuje ZSDOS z rezervovaných stop, `A:=FD0:0`;
+    - MZSYS odmítne disketu bez bootovací stopy MZ a zapíše IPL na prázdnou disketu v rozložení MZ.
+  - **Rychlost:** zavaděč čte sektory po jednom v logickém pořadí. Při prokládání 2:1 to jsou asi 2 otáčky na stopu,
+    tedy kolem 11 KB/s. `.rom` (384 KB) se bude na reálném HW číst asi 35 s, `.upd` (128 KB) asi 12 s. Zrychlit
+    se dá čtením celé stopy v pořadí na disku.
+- **Formátování (etapa 5):**
+  - **DIODEFMED v `mzfd.asm`:** E = `MID_FD720` nebo `MID_FD360`, bit 7 E = rozložení MZ (rozšíření pro MZ-800).
+    Nastaví médium bez detekce. 360K v 5,25" mechanice s 80 stopami dostane dvojitý krok.
+  - **DIOFORMAT** (D = strana, E = výplň, HL = válec) zapíše stopu příkazem WRITE TRACK ($F0).
+    - **Stopa jako seznam běhů (počet, bajt) v `HB_WRKBUF`**, bajty už negované, počet 0 = 256:
+      - GAP 4a 80 × 4E, IAM, GAP 1 50 × 4E;
+      - za každý sektor ID a datové pole, GAP 3 84 (9 × 512) nebo 50 (16 × 256);
+      - nakonec 1024 × 4E až do indexu.
+    - **Smyčka:** 66 T na bajt, na konci běhu 99 T (DD má 113 T). Přerušení jsou zakázaná po celou stopu.
+    - **Prokládání:** 9 × 512 jako Lamačův FORMAT4 (1,6,2,7,3,8,4,9,5). V rozložení MZ dostane válec 0 / strana
+      1 bootovací stopu 16 × 256 po sobě.
+  - **`MZFMT.COM`** (`Source/MZ800/mzfmt.asm` → `Binary/Apps/mzfmt.com`): `MZFMT D: [/360] [/PC]`.
+    - Jednotku HBIOS najde přes mapu jednotek CBIOS (`$44` → CBX → `DRVMAPADR`) a ověří, že jde o disketu MZ-800
+      (`DIODEV_FD`, I/O $D8).
+    - Výchozí je 720K v rozložení MZ, `/360` (výchozí v 5,25" DD) a `/PC` bez bootovací stopy.
+    - Po potvrzení Y zavolá DEFMED a DIOFORMAT pro všechny stopy, pak reset disků BDOS.
+- **Oprava konzole (2026-11-07):** HBIOS při každém skoku na 0 (konec programu, teplý start) volá `TERM_RESET`,
+  a ten volá VDARES. `MZV_VDARES` dřív smazal obrazovku a vrátil kurzor domů, takže po každém programu zůstal jen
+  prompt.
+  - Teď VDARES jen znovu nastaví registry GDG a posun obrazu a obsah nechá (jako `TMS_VDARES`).
+  - Plná inicializace se smazáním je ve VDAINI (start, `TERM_ATTACH`).
+- **Další krok:** etapa 6 (HD přes přerušení od DRQ, média Lamače 1,44M/1,2M).
 
 ## Build
 
@@ -183,6 +236,9 @@
   MemExt, bez souboru). Předpokládá build `MZ800 std` a `Source\BuildMZ800.cmd`.
 - `python mzdev/tests/emu/run_ucrd.py`: RAM disk Unikarty 16 MB, PIP na obě slice, kontrola cpmtools.
 - `python mzdev/tests/emu/run_fd.py`: diskety DD, čtení Lamačovy diskety, zápis, kontrola cpmtools, vypnutí motoru.
+- `python mzdev/tests/emu/run_ipl.py`: boot z diskety (IPL, romldr z FD0), MZSYS, nová bootovací disketa (asi
+  15 min). Předpokládá build `MZ800 std` a `Source\BuildMZ800.cmd`.
+- `python mzdev/tests/emu/run_fmt.py`: MZFMT v rozložení MZ i PC, kontrola stop v DSK a souboru přes cpmtools.
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.
   `Source/HBIOS/hbios_rom.lst`, `romldr.lst`.
 - **Proměnné HBIOS** číst přes `memext_read` z banky $80 (offset 0), ne přes pohled CPU. Ten ukazuje banku, která
@@ -197,6 +253,13 @@
 - **Emulátor a FDC:** stopu v DSK vybírá podle registru stopy, ne podle polohy hlavy. READ ADDRESS vrací jako válec
   registr stopy. Dvojitý krok se v něm tedy vyzkoušet nedá.
 - **Lamačův DUMP** otevírá soubor jen na aktuální jednotce (`c:` a pak `ldump ldump.com`).
+- **PIP a cesta ZSDOS:** když soubor s cílovým jménem leží na jednotce v cestě (A:), PIP selže.
+  - Je-li ten soubor R/O, PIP se ptá „DESTINATION IS R/O“.
+  - Je-li R/W, PIP skončí bez hlášky a kopie zůstane jako `.$$$` (ZSDOS najde soubor na A: při přejmenování).
+  - **Řešení:** cílové jméno, které na A: není, nebo ZSDOS `COPY` (umí i ověření).
+- **Emulátor a `fdd_storage='cached'`:** při ukončení zapíše obraz zpět a umí přitom poškodit hlavičku DSK
+  (bootovací disketa se pak v dalším běhu nenačte celá). `cached` jen pro mechaniky, do kterých test opravdu
+  zapisuje: `Emu(fdd_storage={1: 'cached'})`.
 - **TASM při přetečení proxy** (kód za $FF00) nehlásí chybu, jen přestane psát listing a `.bin` nevznikne. Kontrola:
   `HBIOS INT STACK space` ve výpisu buildu.
 - **TASM 3.2 zkrátí argument makra na 16 znaků.**
