@@ -105,6 +105,27 @@ HD mechaniky, zatím se čte jen DD).
 - **MZFMT:** zda formátuje bez chyb a zda disketu přečte Lamač (formát stopy, mezery GAP, prokládání);
 - **romldr z FD0:** boot bez chyb.
 
+## 4. test: HD diskety (od 2026-11-07)
+
+**Potřeba:** řadič s HD úpravou (porty DEh/DFh), mechanika 3,5" HD, HD disketa z Lamačova CP/M (1,44M, např.
+kopie systémové nebo datové).
+
+1. **Start z Unikarty nebo z DD diskety**, `Z`, pak s HD disketou v mechanice:
+   - `STAT B:DSK:` má ukázat 1404 KB, 256 položek, 32 záznamů na blok, 72 sektorů na stopu, 4 rezervované stopy;
+   - `DIR B:`, spustit program z diskety;
+   - `COPY C:=B:něco.COM` na druhou HD disketu (formátovanou ve FORMAT4) a zpět v Lamačově CP/M.
+2. **Boot z HD diskety:** HD disketa ve formátu Lamače, `MZSYS B:`, `COPY B:ROMWBW.ROM=…`,
+   `SYSCOPY B:=ZSYS.SYS`, pak boot z mechaniky 0. Nebo obraz pro Gotek:
+   `python mzdev/tools/mzdsk.py mkboot boot144.dsk 1440 --sys Binary/ZSDOS/zsys_wbw.sys`.
+
+**Co poslat zpět:**
+
+- **chyby `MZFD0: ERR ST=..`:** status 04 = LOST DATA (přerušení nestíhá), 10 = sektor nenalezen;
+- **jestli po práci s HD jdou hodiny** (`TIMER`) a klávesnice. Během příkazu HD je tik vypnutý, takže hodiny se
+  zpožďují;
+- **rychlost** (`DIR`, `COPY`);
+- **DD disketa v HD mechanice:** detekce nejdřív zkusí HD. Jak dlouho trvá, než se ukáže DIR?
+
 ## Mapování kláves (zatím)
 
 | Klávesa MZ-800 | CP/M |

@@ -38,6 +38,15 @@ Co nejde ověřit v emulátoru. Odpovědi zapisovat sem s datem a pak promítnou
   - **Stopa 9 × 512:** GAP 4a 80, GAP 1 50, GAP 2 22, GAP 3 84, prokládání jako FORMAT4. Bootovací stopa 16 × 256
     s GAP 3 50. Vejde se to na stopu a přečte to Lamač?
   - **Rychlost zavaděče IPL:** sektory v logickém pořadí, odhad 11 KB/s.
+- **HD (od 2026-11-07):**
+  - **Rozpočet 55 T na bajt** (IM 1 13 T + obsluha 42 T) z 56,75 T. Obsluha i buffer jsou v RAM MemExt. Přidává
+    MemExt wait stavy?
+  - **Čekací smyčka** `IN B,(C) / RRC B / JP C`: nejdelší instrukce 12 T, latence přerušení stejná jako u Lamače.
+  - **DEh = 1 jen během příkazu** (krokování v DD). Stačí to i řadiči WD2793 se 2 MHz?
+  - **Detekce HD:** READ ADDRESS v HD na DD disketě musí selhat (RNF / timeout ≈ 1 s), pak se zkusí DD. Na
+    emulátoru hustota není, tam rozhoduje jen existence sektoru 18.
+  - **Zavaděč IPL v HD:** IM 1 s obsluhou na $0038 v režimu MZ-700. Žádný jiný zdroj přerušení nesmí být aktivní
+    (stejně jako u zavaděče Lamače).
 
 ## Video a vstupy
 

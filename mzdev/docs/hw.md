@@ -68,7 +68,8 @@ Fakta, na kterých port stojí, se zdroji. Co je jen z emulátoru, je tak označ
 
   - log. stopa = válec×2 + strana;
   - válec 0 / strana 1 je vždy bootovací stopa 16×256 DD;
-  - válce 0–1 jsou DD i na HD disketách;
+  - na HD disketách je v DD jen bootovací stopa (válec 0 / strana 1), ostatní stopy jsou HD (opraveno 2026-11-07
+    podle `Martin144.dsk` a rozboru FORMAT4);
   - mimo bootovací stopu data na disku neinvertovaná (BIOS dělá CPL).
 - **Zdroje:** `..\Martin-MZ-FDC\CLAUDE.md`, `docs\testy-emulator.md`, `docs\cpm41-fdc.md`, `..\MZ-1E05\ROM\mz-1e05.asm`.
 - **Emulátor:**

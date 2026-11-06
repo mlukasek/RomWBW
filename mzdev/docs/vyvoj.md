@@ -193,7 +193,34 @@
   prompt.
   - Teď VDARES jen znovu nastaví registry GDG a posun obrazu a obsah nechá (jako `TMS_VDARES`).
   - Plná inicializace se smazáním je ve VDAINI (start, `TERM_ATTACH`).
-- **Další krok:** etapa 6 (HD přes přerušení od DRQ, média Lamače 1,44M/1,2M).
+- **Etapa 6, HD diskety (2026-11-07):** `MZFDHD` (HD úprava řadiče, v `cfg_MZ800.asm` zapnutá).
+  - **Přenos HD přes přerušení od DRQ** jako u Lamače:
+    - DFh = 1, DEh = 1 (HD) jen na dobu příkazu, krokuje se v DD;
+    - IM 1 se 7bajtovou obsluhou na $0038 banky HBIOS (uloží se a vrátí): čtení `IN / CPL / LD (HL),A / INC HL / EI
+      / RET`, zápis `OUT / INC HL / LD A,(HL) / CPL / EI / RET`;
+    - čekací smyčka `IN B,(C) / RRC B / JP C` nepoužívá A ani HL a má timeout ≈ 1 s (`DEC DE / INC D / DEC D`);
+    - během příkazu je vypnuté přerušení PIO A (tik VBLN), tiky se ztrácejí; potom IM 2 a PIO zpět;
+    - počet přenesených bajtů se kontroluje (HL obsluhy proti očekávaným 512).
+  - **Detekce** v mechanice HD (`FDT_3HD`, `FDT_5HD`): READ ADDRESS na válci 2 v HD, pak čtení posledního sektoru
+    (18 nebo 15). Když neprojde, je disketa DD.
+  - **Média:**
+    - RomWBW `MID_FD144`, `MID_FD120`;
+    - **nově `MID_MZ144` (11) a `MID_MZ120` (12)** pro Lamačovy HD formáty (bloky 4K, 256 položek, 4 rezervované
+      stopy), poznají se podle bootovací stopy MZ;
+    - DPB jsou v `hbios.inc`, `ubios.inc`, CBIOS (`DPBMAP`) a CP/M 3 (`diskio.z80`, `biosldr.z80`).
+  - **Na Lamačových HD disketách je DD jen bootovací stopa** (válec 0 / strana 1), ostatní stopy včetně
+    rezervovaných jsou HD 18 × 512 (`Martin144.dsk`, FORMAT4). Mapa rezervovaných stop z etapy 5 platí beze změny.
+  - **Ověřeno** (`run_hd.py`, kopie `Martin144.dsk`):
+    - STAT 1404K, 32 záznamů na blok, 72 sektorů na stopu, 4 rezervované;
+    - DIR, COPY dvou souborů s ověřením;
+    - tik dál běží;
+    - cpmtools (`mz_lamac144` v `mzdev/tools/diskdefs`) přečtou kopie shodné s originály.
+  - **Formátování HD zatím není:** WRITE TRACK v HD potřebuje přerušení i pro proud běhů. DIOFORMAT hlásí
+    `ERR_NOTIMPL`. HD diskety formátovat v Lamačově CP/M (FORMAT4).
+- **Zavaděč IPL pro HD (rozpracováno):** formáty 2 (1,44M) a 3 (1,2M) v `FMTTBL` (sektory na stopu, bloky 4K,
+  adresář 16 sektorů, 16bitová čísla bloků, EXM 1). Sektory HD čte přes přerušení do `BOUNCE` ($A000). $0038
+  leží v nahrávané bance, proto se po každém sektoru obnoví. MZSYS pozná formát z DPB.
+- **Další krok:** ověřit boot z HD diskety v emulátoru, pak etapa 7 (CP/M 3/ZPM3, UC.COM, dokumentace).
 
 ## Build
 
@@ -239,6 +266,7 @@
 - `python mzdev/tests/emu/run_ipl.py`: boot z diskety (IPL, romldr z FD0), MZSYS, nová bootovací disketa (asi
   15 min). Předpokládá build `MZ800 std` a `Source\BuildMZ800.cmd`.
 - `python mzdev/tests/emu/run_fmt.py`: MZFMT v rozložení MZ i PC, kontrola stop v DSK a souboru přes cpmtools.
+- `python mzdev/tests/emu/run_hd.py`: HD 1,44M Lamače (přerušení od DRQ), STAT, DIR, COPY, tik, cpmtools.
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.
   `Source/HBIOS/hbios_rom.lst`, `romldr.lst`.
 - **Proměnné HBIOS** číst přes `memext_read` z banky $80 (offset 0), ne přes pohled CPU. Ten ukazuje banku, která

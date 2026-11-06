@@ -50,7 +50,7 @@ neexistuje. Základní MZ-800 (64 KB) proto pravý RomWBW neutáhne.
 - **Lamačovy diskety:**
   - log. stopa = válec×2+strana, OFF=4;
   - válec 0 / strana 1 = bootovací stopa 16×256 DD, invertovaná;
-  - válce 0–1 jsou DD i na HD disketách.
+  - na HD disketách je v DD jen bootovací stopa (opraveno 2026-11-07, původně „válce 0–1“).
   - DPB 720K je shodný s `DPB_FD720` RomWBW. 360K se liší jen v AL0.
   - 1.2M/1.44M mají bloky 4K, potřebují nové MID.
 - **Unicard:**

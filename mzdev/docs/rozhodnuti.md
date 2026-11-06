@@ -119,3 +119,15 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
 - **DIODEFMED bit 7 = rozložení MZ:** HBIOS má pro médium jen MID a rozložení se jinak nedá předat. Je to
   rozšíření jen pro MZ-800, ostatní ovladače DEFMED neimplementují.
 - **MZFMT formátuje přes HBIOS DIOFORMAT** a stopu streamuje ze seznamu běhů (žádný 6 KB buffer).
+
+### HD diskety (technické, 2026-11-07)
+
+- **Nová média `MID_MZ144` (11) a `MID_MZ120` (12):** Lamačovy HD formáty mají bloky 4K a 4 rezervované stopy,
+  žádný DPB RomWBW jim neodpovídá.
+  - Zasahují do sdílených tabulek: `hbios.inc`, `ubios.inc`, `DPBMAP` v CBIOS, `diskio.z80` a `biosldr.z80`.
+    Přidávají se na konec, takže stávající MID se nemění.
+  - **Pro PR:** domluvit s Waynem čísla a jména.
+- **HD přes přerušení od DRQ místo dotazování:** dotazování potřebuje aspoň 60 T na bajt, HD dává 56,75 T. Lamač
+  to řeší stejně a na reálném HW to chodí.
+- **Formátování HD zatím ne:** WRITE TRACK v HD by potřeboval obsluhu přerušení se seznamem běhů (rozpočet 42 T),
+  nebo buffer celé stopy 12,5 KB. HD diskety formátuje Lamačův FORMAT4, data jsou kompatibilní.
