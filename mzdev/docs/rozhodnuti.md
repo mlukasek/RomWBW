@@ -58,6 +58,31 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
   řádek ukončený CR a na vyhrazenou klávesu ho znovu pošle jako stisky. TPA to nestojí nic a funguje to s každým
   BDOS.
 
+### Klávesy jako v CP/M Lamače (autor, 2026-11-06)
+
+- **Autor:** vyvolání předchozího příkazu je u Lamače klávesa BLANK. Co dělá ALPHA, nevěděl.
+- **Ověřeno v emulátoru na `CPMv41 System.dsk`** (Lamač 4.1):
+  - **BLANK** vrátí předchozí příkaz;
+  - **ALPHA** přepíná Caps Lock (indikátor `NORM`/`CAPS` na stavovém řádku);
+  - **GRAPH** je mrtvá klávesa pro češtinu. GRAPH + `c s z r d t n e u y a i o` dá `č š ž ř ď ť ň ě ů ý á í ó`.
+    Autor si GRAPH pamatoval jako Caps Lock, ve 4.1 je to ALPHA.
+- **V portu:**
+  - BLANK = vyvolání posledního řádku v ovladači klávesnice (`mzkbd.asm`). Funguje v ZSDOS, CP/M 2.2 i v
+    programech a nestojí TPA;
+  - ALPHA = Caps Lock;
+  - GRAPH zatím volná.
+- **Čeština (možná později):** potřebuje font s českými znaky (CP437 v RomWBW je nemá) a volbu kódování. Lamač
+  pravděpodobně používá Kamenických, neověřeno.
+
+### Font konzole (autor, 2026-11-06)
+
+- Autorovi stačí i standardní font Sharp, pokud nežere RAM.
+- **Font RomWBW (CP437 8×8) nebere TPA:** zabírá 2 KB v bance HBIOS, kde je volných asi 17 KB. Má rámečky pro ANSI
+  programy.
+- **Možnost na později:** číst glyfy přímo z CG-ROM. Ta se mapuje současně s VRAM (`IN A,($E0)`), takže by se
+  ušetřily ty 2 KB. Potřebovalo by to převodní tabulku ASCII → kód displeje Sharp. Některé znaky ASCII v CG-ROM
+  chybí.
+
 ### RAM disk Unikarty jako hd1k (technické)
 
 - Ovladač vytvoří virtuální MBR na LBA 0 s oddílem 2Eh od LBA 1. Obraz 16 MB tak obsahuje přesně dvě standardní

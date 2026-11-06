@@ -88,6 +88,13 @@ def main():
             emu.key('DEL', 2, 2)             # DEL = backspace: erase them again
         prompt = [l for l in screen_text(emu, sym) if l.startswith('A>')][-1]
         check(prompt.rstrip() == 'A>', 'DEL (backspace) erases the line')
+        emu.key('BLANK', 3, 5)               # BLANK on an empty line: the last command again (as in Lamac's CP/M)
+        emu.run(10)
+        prompt = [l for l in screen_text(emu, sym) if l.startswith('A>')][-1]
+        check(prompt.rstrip() == 'A>dir', 'BLANK recalls the last command: %r' % prompt.rstrip())
+        type_text(emu, '\r')
+        lines = wait_for(emu, sym, 'A>', 100)
+        check(sum(1 for l in lines if 'No File' in l) >= 2, 'the recalled DIR runs again')
         for _ in range(12):
             type_text(emu, '\r')
         lines = wait_for(emu, sym, 'A>', 100)

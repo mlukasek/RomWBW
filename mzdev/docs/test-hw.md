@@ -57,6 +57,7 @@
 | SHIFT+/ | `_` |
 | SHIFT+@ | `` ` `` |
 | SHIFT+[ / SHIFT+\ / SHIFT+] | `{` / `}` / `\|` |
-| GRAPH, BLANK | zatím nic (GRAPH je rezerva pro vyvolání posledního příkazu) |
+| BLANK | na prázdném řádku vyvolá poslední zadaný řádek (jako CP/M Lamače) |
+| GRAPH | zatím nic (u Lamače mrtvá klávesa pro české znaky) |
 
 Přání k rozložení (podle zvyku z CP/M Lamače) zapsat sem nebo do `rozhodnuti.md`.

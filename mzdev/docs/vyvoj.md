@@ -82,6 +82,11 @@
     nejsou. Vidět je až od MZV dál.
   - **Řešení na později:** vlastní jednoduchá znaková jednotka v PREINIT MZV jako boot konzole. Po INIT se konzole
     přepne na TERM (CRTACT).
+- **Vyvolání posledního řádku klávesou BLANK** (jako u Lamače) je hotové v `mzkbd.asm`.
+  - **Sledování řádku:** ovladač sleduje znaky, které vrací: tisknutelné, BS/DEL, ^C ^U ^X ESC maže řádek, CR
+    ukončí.
+  - **Vyvolání:** BLANK na prázdném řádku vrátí uložený řádek jako by byl napsaný.
+  - **Ověřeno:** `run_console.py`.
 - **Další krok:** RAM disk Unikarty (`ucrd.asm`), potom etapa 4 (disketový řadič).
 
 ## Build
