@@ -60,7 +60,11 @@ def prepare_sd(with_image=True):
 
 
 def start_loader(emu):
-    exec_addr = emu.load_mzf(MZF)
+    # load a copy from the SD root: the emulator creates Unicard Manager runtime files ("unicard/") next to the MZF
+    # it loads, which must not end up in Binary/
+    mzf = os.path.join(SD, 'mz800-ldr.mzf')
+    shutil.copy(MZF, mzf)
+    exec_addr = emu.load_mzf(mzf)
     emu.set_pc(exec_addr)
 
 
