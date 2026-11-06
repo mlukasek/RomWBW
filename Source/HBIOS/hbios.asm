@@ -9550,6 +9550,10 @@ HB_MODSTART	.EQU	$
   #INCLUDE "m6242rtc.asm"
 #ENDIF
 ;
+#IF (UCRTCENABLE)
+  #INCLUDE "ucrtc.asm"
+#ENDIF
+;
 #IF (INTRTCENABLE)
   #INCLUDE "intrtc.asm"
 #ENDIF
