@@ -106,7 +106,41 @@
   - **Pro uživatele:** obraz připravit jako soubor 16 MB (nebo 8 MB) a cestu zapsat do `/unicard/ramdisc.cfg`.
     - Obraz vyplněný E5 je hned prázdný disk.
     - Obraz z nul je potřeba v CP/M smazat `CLRDIR B:` a `CLRDIR C:`.
-- **Další krok, etapa 4:** disketový řadič `mzfd.asm` (DD, formáty Lamače i RomWBW).
+- **Etapa 4, disketový řadič DD je hotový (2026-11-06):** `Source/HBIOS/mzfd.asm` (modul MZFD, typ `DIODEV_FD`,
+  jména `FD0:`…, `MZFDENABLE`).
+  - **Řadič:** porty D8–DFh, příkazy, status, stopa, sektor i data se negují (CPL).
+    - DCh = $84 | mechanika, DDh = strana (bit 0 = 1 je strana 1, tam je bootovací stopa IPL). DEh a DFh drží 0.
+    - **Příkazy jako Lamač 4.1:** READ $82/$8A, WRITE $A2/$AA (porovnání strany, strana v bitu 3), READ ADDRESS
+      $C0. SEEK $18 a RESTORE $08 s krokem `MZFDSTEP` (výchozí r=00, 6 ms v DD).
+    - **Status bit 7 (NOT READY) se netestuje**, WD1772/VR177X tam hlásí motor. Chybou je RNF, CRC, LOST DATA (u
+      zápisu i WP a WF) a příkaz, který skončí dřív, než prošla všechna data.
+  - **Přenos dotazováním:**
+    - čtení 87 T, zápis 90 T na bajt (DD má 113 T);
+    - DI jen od prvního DRQ do konce sektoru (≈ 16 ms);
+    - při čekání na sektor jsou mezi dotazy na status okna `EI / NOP / DI`, tik tedy nepropadne;
+    - timeout ≈ 3,7 s (bez diskety nejsou indexové pulzy a řadič by čekal věčně), pak FORCE INTERRUPT.
+  - **Média:** `MID_FD720` (80 válců) a `MID_FD360` (40 válců), 9 × 512 B, log. stopa = válec × 2 + strana.
+    - Datová oblast Lamačových 720K a 360K je stejná, Lamač u 360K jen používá na adresář 2 ze 4 bloků, které
+      `DPB_FD360` rezervuje. Disky jsou tedy oboustranně kompatibilní.
+    - **Detekce:** RESTORE, válec 2, READ ADDRESS. Formát dává typ mechaniky (`MZFDnTYPE`). V 5,25" mechanice
+      s 80 stopami (`FDT_5HD`) znamená válec 1 v ID disketu se 40 stopami, ta se pak čte dvojitým krokem.
+  - **Motor:** start 500 ms (`MZFDSPIN`), usazení hlavy 15 ms (`MZFDSETL`), vypnutí 3 s po posledním přístupu
+    z tiku (`MZFDMOTO`, háček `VEC_TICK`).
+  - **5 pokusů** na sektor, od třetího s rekalibrací. Pak `MZFD0: ERR ST=.. C=.. H=.. S=..` a `ERR_IO`.
+  - **Nástroj:** `mzdev/tools/mzdsk.py` vytvoří DSK 720/360 (`--lamac` s bootovací stopou 16 × 256 B), převede ho
+    na surový obraz pro cpmtools (`wbw_fd720`, `wbw_fd360`) a zpět. Snese poškozenou tabulku velikostí stop.
+  - **Ověřeno** (`run_fd.py`):
+    - Lamačova disketa s programy (kopie `Martin-MZ-FDC/work/emu/prg41.dsk`) jako `B:`, DIR ukáže všechny
+      soubory;
+    - PIP dvou souborů na prázdnou disketu `C:`, program z ní běží;
+    - po konci emulátoru cpmtools z DSK vytáhnou kopie a ty se shodují s originály;
+    - motor se po 3 s vypne.
+  - **Ručně ověřeno:** 360K s bootovací stopou Lamače na `FDT_5DD` (dočasná konfigurace), STAT ukazuje 342 KB, kopie
+    na PC sedí.
+  - **Lamačovy obrazy DSK:** systémová disketa 4.1 má prázdný adresář. Obraz s programy
+    (`MFDC800T/DSK/CPMv41 Prg CPM.dsk`) má poškozenou hlavičku (stopa 46/0 hlásí 79/0, dvě stopy chybí), soubory na
+    nižších válcích jsou ale v pořádku.
+- **Další krok, etapa 5:** IPL boot z diskety (`mzipl`), `MZSYS`, `MZFMT`, DIOFORMAT.
 
 ## Build
 
@@ -147,6 +181,8 @@
   Text obrazovky čte `mzdev/tools/emu/vramtext.py` (glyfy z `Source/Fonts/font8x8u.bin`).
 - `python mzdev/tests/emu/run_loader.py`: zavaděč MZF z emulované Unikarty až po ZSDOS a `DIR` (PEHU, Lüftner, bez
   MemExt, bez souboru). Předpokládá build `MZ800 std` a `Source\BuildMZ800.cmd`.
+- `python mzdev/tests/emu/run_ucrd.py`: RAM disk Unikarty 16 MB, PIP na obě slice, kontrola cpmtools.
+- `python mzdev/tests/emu/run_fd.py`: diskety DD, čtení Lamačovy diskety, zápis, kontrola cpmtools, vypnutí motoru.
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.
   `Source/HBIOS/hbios_rom.lst`, `romldr.lst`.
 - **Proměnné HBIOS** číst přes `memext_read` z banky $80 (offset 0), ne přes pohled CPU. Ten ukazuje banku, která
@@ -156,6 +192,11 @@
 
 - **Git Bash a Python s heredocem:** úprava `Makefile` přes `python -I - <<EOF` nenašla řetězec, který tam je.
   Úpravy souborů se CRLF dělat skriptem spuštěným z PowerShellu.
+  - `'\n'` v heredocu se do souboru zapíše jako skutečný konec řádku. Řetězce s `\n` upravovat nástrojem Edit.
+  - `sed -i` v Git Bash odstraní CR z celého souboru.
+- **Emulátor a FDC:** stopu v DSK vybírá podle registru stopy, ne podle polohy hlavy. READ ADDRESS vrací jako válec
+  registr stopy. Dvojitý krok se v něm tedy vyzkoušet nedá.
+- **Lamačův DUMP** otevírá soubor jen na aktuální jednotce (`c:` a pak `ldump ldump.com`).
 - **TASM při přetečení proxy** (kód za $FF00) nehlásí chybu, jen přestane psát listing a `.bin` nevznikne. Kontrola:
   `HBIOS INT STACK space` ve výpisu buildu.
 - **TASM 3.2 zkrátí argument makra na 16 znaků.**

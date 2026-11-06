@@ -40,6 +40,27 @@
   - autorepeat (asi po 0,5 s).
 - **Jak dlouho trvá načtení** (12 bank).
 
+## 2. test: diskety DD (od 2026-11-06)
+
+**Potřeba:** totéž jako 1. test, navíc disketový řadič a mechanika 3,5" (výchozí konfigurace: `FD0` i `FD1` jsou 3,5"
+HD mechaniky, zatím se čte jen DD).
+
+1. **Diskety:** Lamačova disketa 720K s daty (ne originál, nejlépe kopie) a jedna prázdná DD disketa naformátovaná
+   v Lamačově CP/M na 720K (vlastní formátování zatím RomWBW neumí).
+2. **Start jako u 1. testu**, v seznamu zařízení mají být `FD0:` a `FD1:` (`Floppy Disk 3.5",DS/HD`).
+3. **`Z` + CR**, ZSDOS vypíše přiřazení jednotek, např. `B:=FD0:0`, `C:=FD1:0`.
+4. **Zkusit:**
+   - `DIR B:` s Lamačovou disketou (seznam souborů, jako v CP/M Lamače);
+   - `PIP C:X.COM=B:něco.COM` na prázdnou disketu, pak `DIR C:`;
+   - spustit program z diskety (`C:` a pak `X`);
+   - `STAT C:DSK:` má ukázat 702 KB, 128 položek adresáře, 4 rezervované stopy;
+   - vrátit kopii do Lamačova CP/M a tam ji spustit (kompatibilita zápisu).
+5. **Co poslat zpět:**
+   - hlášky `MZFD0: ERR ST=.. C=.. H=.. S=..`, pokud se objeví (kolik a kde);
+   - jestli motor po 3 s zhasne;
+   - jak dlouho trvá `DIR` a kopie (pro odhad rychlosti krokování);
+   - co udělá `DIR` na mechanice bez diskety (mělo by to po pár sekundách skončit chybou).
+
 ## Mapování kláves (zatím)
 
 | Klávesa MZ-800 | CP/M |

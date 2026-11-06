@@ -20,6 +20,16 @@ Co nejde ověřit v emulátoru. Odpovědi zapisovat sem s datem a pak promítnou
 - Polarita DFh (povolení INT od DRQ) a rozpočet 55 T/bajt u HD s ISR na 0038h.
 - Step rate mechanik, takt WD279x.
 - Mají autorovy řadiče HD úpravu (DEh/DFh)? Které mechaniky a formáty jsou k dispozici?
+- **`mzfd.asm` (DD, od 2026-11-06), co emulátor neověří:**
+  - **Přenos dotazováním:** čtení 87 T, zápis 90 T na bajt při DI. Stihne to DD bez LOST DATA, i když MemExt
+    přidává wait stavy?
+  - **Okna `EI / NOP / DI` při čekání na sektor:** obsluha tiku (sken klávesnice) trvá déle než 32 µs. Když DRQ
+    přijde během ní, první bajt propadne a sektor se opakuje. Jak často se to stává (hlášky `MZFD0: ERR`)?
+  - **Krok r=00:** 6 ms na WD279x/MB8876 v DD i na WD1772. Zvládnou ho autorovy mechaniky? Jinak `MZFDSTEP`.
+  - **Časy:** start motoru 500 ms, usazení hlavy 15 ms. Lamač 4.1 má 189 ms a ≈ 3 ms.
+  - **Strana:** DDh bit 0 = 1 je fyzická strana 1 (podle emulátoru a ROM MZ-1E05). Sedí to?
+  - **Bez diskety v mechanice:** detekce čeká na timeout ≈ 2 × 3,7 s. Hlásí se to rozumně (chyba výběru disku)?
+  - **Výměna diskety:** CP/M ji pozná až po ^C (nové přihlášení jednotky). Detekce běží při každém přihlášení.
 
 ## Video a vstupy
 

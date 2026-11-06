@@ -89,3 +89,19 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
   slice hd1k, bez prefixu.
 - **Na PC:** cpmtools s `wbw_hd1k` a offsetem 0 / 8M.
 - **4 MB obraz:** jako `MID_RF`. Menší obrazy se odmítnou.
+
+### Disketový ovladač `mzfd.asm` (technické, 2026-11-06)
+
+- **Typ zařízení `DIODEV_FD`:** jména `FD0:`, `FD1:` a odhady paměti v `assign` fungují bez zásahu do aplikací.
+  `fd.asm` (765) se na MZ-800 nepoužívá, kolize nehrozí.
+- **Formáty Lamače 720K a 360K mají vlastní MID jen tehdy, když se DPB liší:**
+  - 720K je shodné s `DPB_FD720`;
+  - 360K se liší jen v AL0, a to bez vlivu na data (viz `vyvoj.md`);
+  - takže `MID_FD720` a `MID_FD360` a žádný zásah do CBIOS, CP/M 3 ani `copysl`;
+  - nové MID budou potřeba až pro HD (Lamač má bloky 4 KB).
+- **DD dotazováním, HD později přes přerušení:** dotazování stačí na DD s rezervou a nemění režim přerušení. HD
+  (55 T/bajt) půjde jen s ISR na 0038h jako u Lamače (etapa 6).
+- **Status bit 7 se netestuje:** na WD1772/VR177X je to motor, ne NOT READY. Chybějící disketu pozná timeout nebo
+  příkaz bez dat.
+- **Krok jen SEEK s r=00, bez ověření:** 6 ms na všech řadičích v DD. Lamač krokuje po jednom s časováním
+  v softwaru, to je zatím zbytečné.
