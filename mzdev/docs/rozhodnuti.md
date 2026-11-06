@@ -48,6 +48,16 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
 - Proto nejdřív `UC.COM` (DIR/GET/PUT, sekvenčně) a disk až jako bonus na konci.
 - Přenos PC ↔ CP/M zajistí i obraz RAM disku Unikarty, protože je to surový soubor na SD (cpmtools).
 
+### Vyvolání předchozího příkazu (autor, bonus)
+
+- Autor oceňuje z CP/M Lamače, že jde vyvolat předchozí příkaz.
+- **V RomWBW to už částečně je:**
+  - ZPM3 má historii příkazů v BDOS (funkce 10, asi 250 B, ^E zpět, ^W vpřed, doplňování podle historie);
+  - CP/M 3 má ^W na poslední příkaz (`Doc/CPM/ZPM3.txt`).
+- **ZSDOS a CP/M 2.2** historii nemají. Doplní ji ovladač klávesnice MZ-800 v bance HBIOS: pamatuje si poslední
+  řádek ukončený CR a na vyhrazenou klávesu ho znovu pošle jako stisky. TPA to nestojí nic a funguje to s každým
+  BDOS.
+
 ### RAM disk Unikarty jako hd1k (technické)
 
 - Ovladač vytvoří virtuální MBR na LBA 0 s oddílem 2Eh od LBA 1. Obraz 16 MB tak obsahuje přesně dvě standardní

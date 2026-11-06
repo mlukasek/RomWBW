@@ -160,6 +160,12 @@ neexistuje. Základní MZ-800 (64 KB) proto pravý RomWBW neutáhne.
   - kurzor přes EXOR;
   - napojení na `ansi.asm` přes TERM_ATTACH už v PREINIT, aby byly vidět zprávy bootu.
 - **`mzkbd.asm`:** matice 10×8 přes 8255, skenování z ticku VBLN, tabulky převodu na kódy RomWBW (podle `mky.asm`).
+  - **Vyvolání předchozího příkazu (přání autora):**
+    - ZPM3 má historii příkazů vestavěnou (asi 250 B, ^E zpět, ^W vpřed, automatické doplňování), CP/M 3 má
+      ^W na poslední příkaz.
+    - Pro ZSDOS a CP/M 2.2 (BDOS funkce 10 historii nemá) uloží ovladač klávesnice v bance HBIOS poslední
+      zadaný řádek. Na vyhrazenou klávesu ho znovu „napíše“. TPA to nestojí nic. Klávesu zvolit podle zvyku
+      z CP/M Lamače.
 - **`ucrtc.asm`:** RTC z Unikarty (62h/63h), záloha INTRTC.
 
 ### Soubory platformy (konvence RomWBW)
@@ -203,7 +209,7 @@ neexistuje. Základní MZ-800 (64 KB) proto pravý RomWBW neutáhne.
 | 4 | `mzfd` DD: 360K/720K Lamač i RomWBW | DIR `CPMv41 System.dsk` sedí s `cpm41cfg.py`; zápis ověřený na PC; disketa FD720 RomWBW čitelná |
 | 5 | `mzipl` (IPL + stage 2), `MZSYS`, `MZFMT`, DIOFORMAT, permutace boot oblasti | Naformátovat, SYS, studený boot z diskety; romldr disk boot. **2. test na HW** |
 | 6 | HD: 1.2M/1.44M Lamač + FD144/FD120, přenos přes DRQ INT | `Martin144.dsk` čtení, zápis a boot. **3. test na HW: časování 55 T/bajt** |
-| 7 | CP/M 3/ZPM3, `UC.COM` (DIR/GET/PUT SD, přepnutí obrazu RAM disku přes MOUNT), anglická dokumentace platformy, příprava PR | ZPM3 s 60K TPA; kopie souborů SD ↔ CP/M |
+| 7 | CP/M 3/ZPM3, `UC.COM` (DIR/GET/PUT SD, přepnutí obrazu RAM disku přes MOUNT), vyvolání posledního řádku v `mzkbd` pro ZSDOS/CP/M 2.2, anglická dokumentace platformy, příprava PR | ZPM3 s 60K TPA a historií příkazů; kopie souborů SD ↔ CP/M; v ZSDOS klávesa vrátí poslední příkaz |
 | 8 | Bonus: disk se soubory SD (po opravě SEEK ve fw nebo přes simulaci re-open), boot z RAM disku Unikarty, komprimovaný obraz, RomWBW ve flash Lüftneru (`ROMSIZE=512`) | Podle výsledku průzkumu |
 
 ## Ověřování

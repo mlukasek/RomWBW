@@ -66,4 +66,5 @@ Autor: Martin Lukášek. Komunikace **česky**.
 ## Testy
 
 - `python mzdev/tests/emu/run_memext.py`: harness, mapování MemExt (PEHU, Lüftner, žádný).
+- `python mzdev/tests/emu/run_hbios.py`: start HBIOS z `Binary/MZ800_std.upd` (po buildu `MZ800 std`).
 - Další testy podle etap v `mzdev/docs/vyvoj.md`.
