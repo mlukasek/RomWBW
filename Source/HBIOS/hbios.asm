@@ -9692,6 +9692,10 @@ HB_MODSTART	.EQU	$
   #INCLUDE "rf.asm"
 #ENDIF
 ;
+#IF (UCRDENABLE)
+  #INCLUDE "ucrd.asm"
+#ENDIF
+;
 #IF (IDEENABLE)
   #INCLUDE "ide.asm"
 #ENDIF
