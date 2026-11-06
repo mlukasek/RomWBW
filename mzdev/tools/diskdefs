@@ -37,3 +37,29 @@ diskdef mz_ucrd_rf
   boottrk 0
   os 2.2
 end
+
+# Lamac's CP/M 4.1 for the MZ-800, 1.44M (HD): 80 x 2 x 18 x 512, 4K blocks, 256 directory entries, 4 reserved
+# tracks (logical track = cylinder * 2 + side; cylinder 0 / side 1 is the MZ-800 IPL boot track, 16 x 256 DD).
+# Raw image from mzdsk.py toraw --spt 18.
+diskdef mz_lamac144
+  seclen 512
+  tracks 160
+  sectrk 18
+  blocksize 4096
+  maxdir 256
+  skew 0
+  boottrk 4
+  os 2.2
+end
+
+# Lamac's 1.2M (HD 5.25"): 80 x 2 x 15 x 512, 4K blocks, 256 directory entries, DSM 292 as Lamac has it.
+diskdef mz_lamac120
+  seclen 512
+  tracks 160
+  sectrk 15
+  blocksize 4096
+  maxdir 256
+  skew 0
+  boottrk 4
+  os 2.2
+end

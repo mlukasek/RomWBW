@@ -16,3 +16,33 @@ moves itself into the common bank, reads the image sequentially
 (Unicard firmware 0.26 has no working SEEK) into banks $80.. and jumps
 to HBIOS. The full `.rom` image also fills the RAM disk with the RomWBW
 utilities; the `.upd` image (first 128K) leaves it empty.
+
+## Floppy boot (`mz800-ipl.bin`, `MZSYS.COM`)
+
+A 720K or 360K floppy in the MZ layout (the layout of Lamac's CP/M for
+the MZ-800: cylinder 0, side 1 is the IPL boot track of 16 sectors of
+256 bytes) boots RomWBW from drive 0 at power on:
+
+- the boot track holds `mz800-ipl.bin`: the IPLPRO header and a loader
+  that detects MemExt, reads the CP/M directory of the disk and loads
+  the file `ROMWBW.ROM` (user 0) into banks $80.. like the Unicard
+  loader, then starts HBIOS;
+- `ROMWBW.ROM` is `MZ800_std.rom` (fills the RAM disk too) or
+  `MZ800_std.upd` (loads three times quicker, empty RAM disk);
+- optionally a CP/M system in the reserved tracks (`SYSCOPY`) lets the
+  boot loader boot the floppy itself (disk unit of FD0), A: is then the
+  floppy.
+
+On a RomWBW system, a disk formatted by Lamac's CP/M is made bootable
+with:
+
+    MZSYS C:
+    PIP C:ROMWBW.ROM=...MZ800_STD.ROM
+    SYSCOPY C:=ZSYS.SYS
+
+`MZSYS` writes the IPL loader through the floppy driver: on a disk in
+the MZ layout the driver shows the boot track as reserved track 3
+(8 sectors of 512 bytes, not complemented) and maps reserved tracks 0-2
+to cylinder 0 side 0 and cylinder 1, so the 27 sectors of the system
+image do not touch the boot track. The data area is the same as in
+Lamac's CP/M, so the disks are interchangeable.

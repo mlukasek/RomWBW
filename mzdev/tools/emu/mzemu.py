@@ -78,7 +78,9 @@ class Emu:
         unicard_sd: host folder used as the Unicard SD card, or None (Unicard not connected).
         unicard_fw: 1 = uc3 (Unicard mk3b fw 0.26, as on real hardware), 0 = uc1.
         fdd: {drive: dsk path}; only copies in mzdev/work should be given (the emulator rewrites DSK headers).
-        fdd_storage: 'discard' keeps the image file untouched, 'cached' writes it back on eject / exit."""
+        fdd_storage: 'discard' keeps the image file untouched, 'cached' writes it back on eject / exit; a dict
+        {drive: mode} sets it per drive (default 'discard'). Only drives that must be written back should be
+        'cached': the emulator may damage the DSK header when it writes the image back."""
         self.exe = exe
         arch = os.path.splitext(exe)[0]
         emu_work = os.path.join(WORK, 'emu')
@@ -105,7 +107,8 @@ class Emu:
         for n in range(4):
             path = (fdd or {}).get(n, '')
             ov['FDC']['wd279x_fdd%d_dskpath' % n] = os.path.abspath(path) if path else ''
-            ov['FDC']['wd279x_fdd%d_storage_mode' % n] = fdd_storage
+            mode = fdd_storage.get(n, 'discard') if isinstance(fdd_storage, dict) else fdd_storage
+            ov['FDC']['wd279x_fdd%d_storage_mode' % n] = mode
         ini = os.path.join(emu_work, arch + '.ini')
         make_ini(ini, os.path.join(EMU_DIR, arch + '.ini'), ov)
         cmd = [os.path.join(EMU_DIR, exe), '--mcp-pipe', '--headless', '--no-first-run-windows', '--no-save-ini',

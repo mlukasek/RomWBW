@@ -62,7 +62,7 @@ def main():
     Dsk.new(720).save(FD1)
     run_loader.prepare_sd()
     sym = load_lst(run_hbios.LST)
-    with Emu(memext='PEHU', unicard_sd=run_loader.SD, fdd={0: FD0, 1: FD1}, fdd_storage='cached') as emu:
+    with Emu(memext='PEHU', unicard_sd=run_loader.SD, fdd={0: FD0, 1: FD1}, fdd_storage={1: 'cached'}) as emu:
         run_loader.start_loader(emu)
         lines = run_console.wait_for(emu, sym, 'Boot [H=Help]:', 1500, 20)
         screen = '\n'.join(lines)

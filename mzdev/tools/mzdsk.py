@@ -4,9 +4,17 @@
     python mzdev/tools/mzdsk.py toraw work/dsk/b720.dsk work/dsk/b720.img
     python mzdev/tools/mzdsk.py fromraw work/dsk/b720.dsk work/dsk/b720.img
     python mzdev/tools/mzdsk.py info work/dsk/b720.dsk
+    python mzdev/tools/mzdsk.py mkboot work/dsk/boot.dsk 720 [--ipl Binary/mz800-ipl.bin] [--sys zsys_wbw.sys]
+                                [--image Binary/MZ800_std.rom] [--file path[=NAME.EXT] ...]
 
 Formats: 720 = 80x2x9x512, 360 = 40x2x9x512 (sector IDs 1..9, interleave 1,6,2,7,3,8,4,9,5 as Lamac formats).
 --lamac makes cylinder 0 / side 1 the MZ-800 IPL boot track (16 sectors of 256 B), as on Lamac's system disks.
+
+mkboot makes a RomWBW boot disk in the MZ layout (Lamac's): the IPL loader (Source/MZ800/mzipl.asm) on the boot
+track, the RomWBW image as file ROMWBW.ROM, optionally a CP/M system (.sys from SYSCOPY, 27 sectors) in the
+reserved tracks for the boot loader's disk boot, and more files. The reserved tracks of the MZ layout are mapped as
+mzfd.asm maps them: logical tracks 0, 1, 2 are cylinder 0 side 0, cylinder 1 side 0, cylinder 1 side 1, logical
+track 3 is the boot track (cylinder 0 side 1).
 
 The raw image is the CP/M view: logical track t = cylinder * 2 + side, sectors 1..9 in order, 4608 B per track.
 A track that is not 9 x 512 (the boot track) is filled with E5h in the raw image and left alone by fromraw.
@@ -16,12 +24,19 @@ The DSK holds the bytes as they are on the disk. The MZ-800 bus inverts them, th
 RomWBW mzfd.asm) complement them again, so the data area of the DSK is what CP/M sees.
 """
 import argparse
+import os
 import struct
+import subprocess
 import sys
+import tempfile
 
 FORMATS = {720: (80, 2, 9), 360: (40, 2, 9)}
 SKEW9 = [1, 6, 2, 7, 3, 8, 4, 9, 5]
 SECTOR = 512
+ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+CPMTOOLS = os.path.join(ROOT, 'Tools', 'cpmtools')
+RESERVED = [(0, 0), (1, 0), (1, 1)]      # logical reserved tracks 0-2 of the MZ layout (track 3 is the boot track)
+IPL_PARAMS = 256 + 2                     # "RWB", format, double step, name (after the jump at $1200)
 
 
 class Dsk:
@@ -147,6 +162,56 @@ class Dsk:
                     s[:] = raw[pos:pos + SECTOR]
 
 
+def cpm_name(name):
+    """'romwbw.rom' -> b'ROMWBW  ROM' (11 bytes as in a directory entry)."""
+    base, _, ext = name.upper().partition('.')
+    return (base[:8].ljust(8) + ext[:3].ljust(3)).encode('ascii')
+
+
+def put_files(dsk, capacity, files):
+    """Copy host files into the CP/M data area with cpmtools. files: list of (host path, CP/M name)."""
+    fmt = 'wbw_fd%d' % capacity
+    fd, img = tempfile.mkstemp(suffix='.img')
+    os.close(fd)
+    try:
+        with open(img, 'wb') as f:
+            f.write(dsk.to_raw())
+        for path, name in files:
+            r = subprocess.run([os.path.join(CPMTOOLS, 'cpmcp.exe'), '-f', fmt, img, os.path.abspath(path),
+                                '0:' + name.lower()], cwd=CPMTOOLS, capture_output=True, text=True)
+            if r.returncode:
+                raise RuntimeError('cpmcp %s: %s' % (name, r.stdout + r.stderr))
+        dsk.from_raw(open(img, 'rb').read())
+    finally:
+        os.remove(img)
+
+
+def mkboot(capacity, ipl, image=None, image_name='ROMWBW.ROM', sysimg=None, files=()):
+    """RomWBW boot disk in the MZ layout (see the module documentation). Returns the Dsk."""
+    d = Dsk.new(capacity, lamac=True)
+    ipl = bytearray(ipl)
+    if len(ipl) != 4096 or ipl[0:7] != b'\x03IPLPRO' or ipl[IPL_PARAMS:IPL_PARAMS + 3] != b'RWB':
+        raise ValueError('not an MZ-800 RomWBW IPL image')
+    ipl[IPL_PARAMS + 3] = 0 if capacity == 720 else 1          # format
+    ipl[IPL_PARAMS + 4] = 0                                       # no double stepping
+    ipl[IPL_PARAMS + 5:IPL_PARAMS + 16] = cpm_name(image_name)
+    for r in range(1, 17):                                        # stored complemented
+        d.sector(0, 1, r)[:] = bytes(255 - b for b in ipl[(r - 1) * 256:r * 256])
+    if sysimg is not None:
+        if len(sysimg) > 27 * SECTOR:
+            raise ValueError('system image too big for the reserved tracks (%d B)' % len(sysimg))
+        sysimg = sysimg.ljust(27 * SECTOR, b'\xE5')
+        for i in range(27):
+            c, h = RESERVED[i // 9]
+            d.sector(c, h, i % 9 + 1)[:] = sysimg[i * SECTOR:(i + 1) * SECTOR]
+    todo = list(files)
+    if image is not None:
+        todo.insert(0, (image, image_name))
+    if todo:
+        put_files(d, capacity, todo)
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -160,8 +225,26 @@ def main():
         p.add_argument('img')
     p = sub.add_parser('info')
     p.add_argument('dsk')
+    p = sub.add_parser('mkboot')
+    p.add_argument('dsk')
+    p.add_argument('capacity', type=int, choices=sorted(FORMATS))
+    p.add_argument('--ipl', default=os.path.join(ROOT, 'Binary', 'mz800-ipl.bin'))
+    p.add_argument('--image', default=os.path.join(ROOT, 'Binary', 'MZ800_std.rom'),
+                   help='RomWBW image, stored as ROMWBW.ROM ("" for none)')
+    p.add_argument('--sys', help='CP/M system for the reserved tracks (e.g. Binary/ZSDOS/zsys_wbw.sys)')
+    p.add_argument('--file', action='append', default=[], help='host file [=CP/M name], repeatable')
     a = ap.parse_args()
-    if a.cmd == 'new':
+    if a.cmd == 'mkboot':
+        files = []
+        for spec in a.file:
+            path, _, name = spec.partition('=')
+            files.append((path, name or os.path.basename(path)))
+        sysimg = open(a.sys, 'rb').read() if a.sys else None
+        d = mkboot(a.capacity, open(a.ipl, 'rb').read(), a.image or None, sysimg=sysimg, files=files)
+        d.save(a.dsk)
+        print('%s: %dK MZ boot disk, %d files%s' % (a.dsk, a.capacity, len(files) + (1 if a.image else 0),
+                                                   ', system in the reserved tracks' if sysimg else ''))
+    elif a.cmd == 'new':
         Dsk.new(a.capacity, a.lamac).save(a.dsk)
     elif a.cmd == 'toraw':
         with open(a.img, 'wb') as f:
