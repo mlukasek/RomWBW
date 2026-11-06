@@ -87,7 +87,26 @@
     ukončí.
   - **Vyvolání:** BLANK na prázdném řádku vrátí uložený řádek jako by byl napsaný.
   - **Ověřeno:** `run_console.py`.
-- **Další krok:** RAM disk Unikarty (`ucrd.asm`), potom etapa 4 (disketový řadič).
+- **RAM disk Unikarty je hotový (etapa 3 uzavřena):** `Source/HBIOS/ucrd.asm` (modul UCRD, `DIODEV_UCRD` = $13,
+  `UCRDENABLE`).
+  - **Porty:** E9h banka, EBh adresa (`OUT (C),r`), EAh data přes INIR/OTIR.
+  - **Velikost:** detekuje se aliasem bank (test bajt na $01F0 každé banky, obnovuje se).
+  - **8–16 MB:** `MID_HD` s virtuálním MBR na LBA 0 (jen pro čtení, oddíl 2Eh od LBA 1, slice × 16384 sektorů),
+    fyzický sektor = LBA − 1. 16 MB = 2 slice hd1k bez prefixu.
+  - **4–8 MB:** `MID_RF` přes první 4 MB. Menší obrazy se nepoužijí.
+  - **Jména UCRD** jsou v `devlist`, `assign` a CBIOS. CBIOS dostal i chybějící `I2CEE`.
+  - **Na PC:** `mzdev/tools/diskdefs` (`mz_ucrd_0`, `mz_ucrd_1`, `mz_ucrd_rf`) pro cpmtools z `Tools/cpmtools`.
+  - **Ověřeno** (`run_ucrd.py`):
+    - 16 MB obraz vyplněný E5;
+    - `B:=UCRD0:0`, `C:=UCRD0:1`;
+    - PIP na obě slice, spuštění z RAM disku;
+    - cpmtools na hostu vidí soubory.
+  - **ZSDOS a PIP:** kopie pod stejným jménem, jaké je na A:, se ptá „DESTINATION IS R/O“. ZSDOS najde originál na A:
+    přes cestu (path) a soubory z obrazu RAM disku mají R/O. Není to chyba ovladače.
+  - **Pro uživatele:** obraz připravit jako soubor 16 MB (nebo 8 MB) a cestu zapsat do `/unicard/ramdisc.cfg`.
+    - Obraz vyplněný E5 je hned prázdný disk.
+    - Obraz z nul je potřeba v CP/M smazat `CLRDIR B:` a `CLRDIR C:`.
+- **Další krok, etapa 4:** disketový řadič `mzfd.asm` (DD, formáty Lamače i RomWBW).
 
 ## Build
 

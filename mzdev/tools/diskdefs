@@ -1,0 +1,39 @@
+# cpmtools disk definitions for the MZ-800 RomWBW port (use: cpmls -f <name> <image>, with this file as
+# ./diskdefs in the current directory)
+
+# Unicard RAM disk image (16 MB file on the Unicard SD card, raw): two hd1k slices without a prefix.
+# The driver (ucrd.asm) shows them as UCRD0:0 and UCRD0:1 behind a synthesized MBR.
+diskdef mz_ucrd_0
+  seclen 512
+  tracks 1024
+  sectrk 16
+  blocksize 4096
+  maxdir 1024
+  skew 0
+  boottrk 2
+  os 2.2
+end
+
+diskdef mz_ucrd_1
+  seclen 512
+  tracks 1024
+  sectrk 16
+  blocksize 4096
+  maxdir 1024
+  skew 0
+  boottrk 2
+  offset 1024T
+  os 2.2
+end
+
+# Unicard RAM disk image of 4 MB (RAM floppy format, MID_RF)
+diskdef mz_ucrd_rf
+  seclen 512
+  tracks 512
+  sectrk 16
+  blocksize 2048
+  maxdir 512
+  skew 0
+  boottrk 0
+  os 2.2
+end

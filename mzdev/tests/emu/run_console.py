@@ -40,10 +40,26 @@ def wait_for(emu, sym, text, frames=600, step=10):
     return lines
 
 
+def run_cmd(emu, sym, cmd, frames=1500, prompt='A>'):
+    """Type a command line and wait until the command is done: the last non-empty screen line is the bare prompt
+    again (a key typed while a CP/M program runs may abort it). Returns the screen lines."""
+    type_text(emu, cmd + '\r')
+    lines = []
+    for _ in range(0, frames, 10):
+        emu.run(10)
+        lines = screen_text(emu, sym)
+        text = [l.rstrip() for l in lines if l.strip()]
+        if text and text[-1] == prompt:
+            return lines
+    return lines
+
+
 def type_text(emu, text):
+    """Type text: letters unshifted (lower case on the RomWBW keyboard map), other characters by the emulator's
+    ASCII mapping (it adds SHIFT where the MZ-800 needs it, e.g. '=')."""
     names = {'\r': 'CR', ' ': 'SPACE'}
     for ch in text:
-        emu.key(names.get(ch, ch.upper()), 2, 3)
+        emu.key(names.get(ch, ch.upper() if ch.isalpha() else ch), 2, 3)
 
 
 def main():
