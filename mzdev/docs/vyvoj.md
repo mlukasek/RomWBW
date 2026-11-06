@@ -29,8 +29,31 @@
     dostává chybu jednotky). Bez MemExt skončí v `MZ_NOMX`.
 - **Detekce v zavaděčích** (`Source/MZ800/mzmemx.asm` s hláškou v režimu MZ-700) se dělá spolu se zavaděčem MZF
   v etapě 3, samostatně by nešla vyzkoušet.
-- **Další krok, etapa 2:** konzole `mzvdu.asm` (640×200, 80×25, font 8×8, HW scroll) a `mzkbd.asm`, časovač VBLN
-  (IM2). **Milník:** menu romldr na obrazovce, `Z` → ZSDOS `A>`.
+- **Etapa 2, první část je hotová (2026-11-06): konzole a klávesnice.**
+  - **`Source/HBIOS/mzv.asm`** (modul MZV, VDA typ `VDADEV_MZV` = 9):
+    - 640×200 mono, 80×25, font 8×8 z obrazu (komprimovaný, LZSA2), zrcadlený do 2 KB v modulu;
+    - scroll přes SOF (40 jednotek na textový řádek);
+    - kurzor = invertovaný spodní řádek buňky;
+    - atributy reverse a underline;
+    - VDACPY: celé řádky přes LDIR, jinak po buňkách s ohledem na směr;
+    - VDARDC není.
+  - **`Source/HBIOS/mzkbd.asm`** (modul MZK):
+    - matice přes 8255, sken při dotazu na stav (zatím bez časovače, bez autorepeat);
+    - SHIFT, CTRL, ALPHA = Caps Lock;
+    - kurzorové klávesy, INST/DEL, F1–F5 na kódy RomWBW ($F0–$F9, $E0–$E9);
+    - tabulky z `mzdev/tools/mzkbdtab.py`.
+  - **Zapojení:**
+    - `MZVENABLE` (cfg_MASTER), `MZKENABLE` (std.asm), include v `hbios.asm`;
+    - `MZVENABLE` v podmínce dekompresoru LZSA2;
+    - `ROMFONTS=TRUE`, `USELZSA2=TRUE` v `cfg_MZ800.asm`;
+    - název `MZV` v `Apps/devlist`.
+  - **Ověřeno** (`run_console.py`, PEHU i Lüftner, nulová i náhodná RAM):
+    - menu romldr se seznamem zařízení;
+    - `z` → `ZSDOS v1.1, 54.0K TPA`, `A>`;
+    - `DIR` na RAM disku;
+    - scroll.
+- **Další krok:** časovač z VBLN (Z80 PIO PA5, IM2), autorepeat a odrušení klávesnice z tiku, pak etapa 3 (zavaděč
+  MZF z Unikarty, RTC, RAM disk Unikarty).
 
 ## Build
 
@@ -63,6 +86,8 @@
 - `python mzdev/tests/emu/run_memext.py`: MemExt PEHU/Lüftner/žádný, 512 KB přes harness, párování stránek PEHU.
 - `python mzdev/tests/emu/run_hbios.py`: `Binary/MZ800_std.upd` přímo do MemExt, start HBIOS (PEHU, Lüftner, bez
   MemExt). Předpokládá hotový build `MZ800 std`.
+- `python mzdev/tests/emu/run_console.py [PEHU|LUFTNER] [--random]`: konzole a klávesnice, boot ZSDOS, DIR, scroll.
+  Text obrazovky čte `mzdev/tools/emu/vramtext.py` (glyfy z `Source/Fonts/font8x8u.bin`).
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.
   `Source/HBIOS/hbios_rom.lst`, `romldr.lst`.
 - **Proměnné HBIOS** číst přes `memext_read` z banky $80 (offset 0), ne přes pohled CPU. Ten ukazuje banku, která
@@ -74,3 +99,20 @@
   Úpravy souborů se CRLF dělat skriptem spuštěným z PowerShellu.
 - **TASM při přetečení proxy** (kód za $FF00) nehlásí chybu, jen přestane psát listing a `.bin` nevznikne. Kontrola:
   `HBIOS INT STACK space` ve výpisu buildu.
+- **TASM 3.2 zkrátí argument makra na 16 znaků.**
+  - `PRTS("dlouhý text$")` pak do `.TEXT` vloží zbytek řádku definice makra i s komentářem.
+  - `PRTSTRD` tiskne až po náhodné `$` a návrat skočí doprostřed kódu.
+  - Delší texty tisknout přes `PRTX(label)` s řetězcem v datech.
+- **Každý soubor ovladače v HBIOS musí být modul** s hlavičkou `.DW SIZ_x` / `.DW x_INITPHASE` a koncem `END_x` /
+  `SIZ_x`.
+  - `MODINIT` prochází moduly podle velikostí za sebou.
+  - Soubor bez hlavičky se vezme jako hlavička a HBIOS skočí do dat. Pak se restartuje dokola, s nulovou RAM jinak
+    než s náhodnou.
+- **CG-ROM při `IN A,($E0)`:**
+  - kód a data používaná při namapované VRAM musí ležet nad $2000;
+  - `mzv.asm` si za hlavičkou modulu případně udělá výplň do $2000 a hlídá to při překladu;
+  - zásobník HBIOS je na $0200–$04FF, takže je mimo.
+- **Emulátor a obsah RAM:** `Emu(fill='NULL')` je výchozí kvůli opakovatelnosti. `run_console.py --random` zkouší
+  náhodnou RAM po zapnutí jako na skutečném stroji.
+- **Font v obrazu je komprimovaný** (LZSA2). `FNT_SELECT` ho rozbalí jen pro ovladače v podmínce `#IF ((CVDUENABLE |
+  … | MZVENABLE) & USELZSA2)` v `hbios.asm`.

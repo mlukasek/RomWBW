@@ -71,7 +71,7 @@ class EmuError(RuntimeError):
 
 
 class Emu:
-    def __init__(self, exe='mz800emu.exe', memext='PEHU', luftner_force_init=True, ramdisk=None,
+    def __init__(self, exe='mz800emu.exe', memext='PEHU', luftner_force_init=True, ramdisk=None, fill='NULL',
                  unicard_sd=None, unicard_fw=1, fdd=None, hd_patch=True, fdd_storage='discard'):
         """memext: 'PEHU', 'LUFTNER' or None (not connected).
         ramdisk: path of the MZ-1R18 SRAM image (16 MB, the Unicard RAM disk stand-in) or None.
@@ -85,7 +85,7 @@ class Emu:
         ov = {'MEMEXT': {'connected': '1' if memext else '0', 'type': memext or 'PEHU',
                          'luftner_force_init': '1' if luftner_force_init else '0',
                          'flash_filepath': os.path.join(emu_work, 'luftner-flash.dat'),
-                         'filling_on_init': 'RANDOM'},
+                         'filling_on_init': fill},
               'RAMDISK': {'mr1r18_pluged': '1' if ramdisk else '0', 'mr1r18_type': 'SRAM', 'mr1r18_size': '16M',
                           'mr1r18_filepath': os.path.abspath(ramdisk) if ramdisk else 'none.dat',
                           'pezik_e8_pluged': '0', 'pezik_68_pluged': '0'},

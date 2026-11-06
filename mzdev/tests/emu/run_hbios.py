@@ -1,7 +1,7 @@
 """Stage 1 bring-up: load the ROM-less HBIOS image (Binary/MZ800_std.upd) straight into MemExt RAM (RomWBW banks
 $80-$83 = MemExt offsets 0-128K for both board types), switch the MZ-800 ROM out, start it at 0 and check:
 - the MemExt type detected by HBIOS (MZ_MXTYPE in the HBIOS bank) and the patched proxy bank select;
-- HBIOS finishes its init and the boot loader (romldr, bank BID_USR $8E) runs and polls the console;
+- HBIOS finishes its init and the boot loader (romldr, bank BID_USR $8E) waits for console input;
 - without MemExt, HBIOS stops at MZ_NOMX (red border, HALT).
 
     python mzdev/tests/emu/run_hbios.py
@@ -51,24 +51,17 @@ def test_type(memext, mxtype, x8, step):
     image = open(UPD, 'rb').read()
     with Emu(memext=memext) as emu:
         boot(emu, image)
-        emu.run(100)
+        # the boot loader (bank BID_USR) polls the console at its prompt (keyboard status)
+        emu.call('bp_add', {'addr': sym['MZK_STAT']})
+        res = emu.run(600)
+        pc = emu.regs()['PC']
+        check(res.get('stopped_by') == 'breakpoint' and pc == sym['MZK_STAT'],
+              'boot loader polls the keyboard (MZK_STAT, PC=%04X)' % pc)
+        emu.call('bp_clear')
         check(bios_byte(emu, sym['MZ_MXTYPE']) == mxtype, 'HBIOS detected MemExt type %d' % mxtype)
         check(emu.mem(0xFE00, 2) == b'W\xa8', 'proxy installed at FE00 (ident W~W)')
         check(emu.byte(sym['HBX_MZX8']) == x8 and emu.word(sym['HBX_MZSTEP'] + 1) == step,
               'proxy bank select patched: %02X / %04X' % (x8, step))
-        ldr = load_lst(LDR_LST)
-        lo, hi = min(ldr.values()), max(ldr.values())
-        banks = set()
-        user_code = False
-        for _ in range(30):
-            emu.call('run', {'frames': 1})
-            bank = emu.byte(HB_CURBNK)
-            banks.add(bank)
-            user_code |= bank == BID_USR and lo <= emu.regs()['PC'] <= hi
-        check(banks <= {BID_BIOS, BID_USR} and BID_USR in banks,
-              'boot loader runs in bank %02X and calls HBIOS (banks seen: %s)'
-              % (BID_USR, ' '.join('%02X' % b for b in sorted(banks))))
-        check(user_code, 'CPU seen in romldr code (%04X-%04X) in bank %02X' % (lo, hi, BID_USR))
 
 
 def test_none():
@@ -88,8 +81,9 @@ def test_none():
         check(sym['MZ_NOMX'] <= pc <= sym['MZ_MXEND'], 'HBIOS stops in MZ_NOMX (PC=%04X)' % pc)
 
 
-test_type('PEHU', 0, 0x00, 0x2004)
-test_type('LUFTNER', 1, 0x07, 0x1008)
-test_none()
-print('FAILED: %d' % len(failures) if failures else 'ALL OK')
-sys.exit(1 if failures else 0)
+if __name__ == '__main__':
+    test_type('PEHU', 0, 0x00, 0x2004)
+    test_type('LUFTNER', 1, 0x07, 0x1008)
+    test_none()
+    print('FAILED: %d' % len(failures) if failures else 'ALL OK')
+    sys.exit(1 if failures else 0)
