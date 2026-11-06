@@ -55,7 +55,8 @@ def layout(path):
 def main():
     os.makedirs(DSK, exist_ok=True)
     files = [(os.path.join(BIN, 'Apps', 'mzfmt.com'), 'MZFMT.COM'),
-             (os.path.join(BIN, 'Apps', 'mzsys.com'), 'MZSYS.COM')]
+             (os.path.join(BIN, 'Apps', 'mzsys.com'), 'MZSYS.COM'),
+             (os.path.join(ROOT, 'Source', 'RomDsk', 'ROM_256KB', 'PIP.COM'), 'PIP.COM')]   # the .upd: empty RAM disk
     mkboot(720, open(os.path.join(BIN, 'mz800-ipl.bin'), 'rb').read(), os.path.join(BIN, 'MZ800_std.upd'),
            sysimg=open(os.path.join(BIN, 'ZSDOS', 'zsys_wbw.sys'), 'rb').read(), files=files).save(BOOT)
     tgt = Dsk.new(720)
@@ -73,7 +74,7 @@ def main():
         check(any('No File' in l for l in lines[-3:]), 'DIR C: is empty after formatting')
         lines = run_console.run_cmd(emu, sym, 'mzsys c:')
         check(any(l.startswith('Done.') for l in lines), 'MZSYS accepts the freshly formatted disk')
-        run_console.run_cmd(emu, sym, 'b:pip c:new.com=a:mzfmt.com', 3000)
+        run_console.run_cmd(emu, sym, 'pip c:new.com=a:mzfmt.com', 3000)
     sizes, order = layout(TGT)
     check(sizes == [256] * 16, 'cylinder 0 / side 1 is the boot track 16 x 256 (%s)' % sizes)
     check(order == SKEW9, 'data tracks: 9 x 512, interleave %s' % order)

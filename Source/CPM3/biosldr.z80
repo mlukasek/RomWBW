@@ -626,6 +626,34 @@ dpb$hdnew:	; 8MB Hard Disk Drive (new format)
 	db	2		; psh: 2 for 512 byte sectors
 	db	3		; phm: (512 / 128) - 1
 
+dpb$mz144:	; Sharp MZ-800 Lamac CP/M 1.44M Floppy (4K blocks)
+	dw	72		; spt: sectors per track
+	db	5		; bsh: block shift factor
+	db	31		; blm: block mask
+	db	1		; exm: extent mask
+	dw	351 - 1		; dsm: total storage in blocks - 1 blk = ((1,440k - 36k off) / 4k bls) - 1 = 350
+	dw	256 - 1		; drm: dir entries - 1 = 256 - 1 = 255
+	db	11000000b	; al0: dir blk bit map, first byte
+	db	00000000b	; al1: dir blk bit map, second byte
+	dw	64		; cks: directory check vector size = 256 / 4
+	dw	4		; off: reserved tracks = 4 trks * (512 b/sec * 72 sec/trk) = 36k
+	db	2		; psh: 2 for 512 byte sectors
+	db	3		; phm: (512 / 128) - 1
+
+dpb$mz120:	; Sharp MZ-800 Lamac CP/M 1.2M Floppy (4K blocks)
+	dw	60		; spt: sectors per track
+	db	5		; bsh: block shift factor
+	db	31		; blm: block mask
+	db	1		; exm: extent mask
+	dw	293 - 1		; dsm: as Lamac's CP/M has it
+	dw	256 - 1		; drm: dir entries - 1 = 256 - 1 = 255
+	db	11000000b	; al0: dir blk bit map, first byte
+	db	00000000b	; al1: dir blk bit map, second byte
+	dw	64		; cks: directory check vector size = 256 / 4
+	dw	4		; off: reserved tracks = 4 trks * (512 b/sec * 60 sec/trk) = 30k
+	db	2		; psh: 2 for 512 byte sectors
+	db	3		; phm: (512 / 128) - 1
+
 dph0:	dw	0		; xlt, 0 means no translation
 	db	0,0,0,0,0,0,0,0,0	; scratch (9 bytes)
 	db	0		; mf: media flag

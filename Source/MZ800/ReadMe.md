@@ -19,9 +19,10 @@ utilities; the `.upd` image (first 128K) leaves it empty.
 
 ## Floppy boot (`mz800-ipl.bin`, `MZSYS.COM`)
 
-A 720K or 360K floppy in the MZ layout (the layout of Lamac's CP/M for
-the MZ-800: cylinder 0, side 1 is the IPL boot track of 16 sectors of
-256 bytes) boots RomWBW from drive 0 at power on:
+A floppy in one of the formats of Lamac's CP/M for the MZ-800 (720K,
+360K, HD 1.44M or 1.2M with the HD modification) in the MZ layout
+(cylinder 0, side 1 is the IPL boot track of 16 sectors of 256 bytes,
+double density) boots RomWBW from drive 0 at power on:
 
 - the boot track holds `mz800-ipl.bin`: the IPLPRO header and a loader
   that detects MemExt, reads the CP/M directory of the disk and loads

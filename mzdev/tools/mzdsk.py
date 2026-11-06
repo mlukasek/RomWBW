@@ -30,8 +30,10 @@ import subprocess
 import sys
 import tempfile
 
-FORMATS = {720: (80, 2, 9), 360: (40, 2, 9)}
-SKEW9 = [1, 6, 2, 7, 3, 8, 4, 9, 5]
+FORMATS = {720: (80, 2, 9), 360: (40, 2, 9), 1440: (80, 2, 18), 1200: (80, 2, 15)}
+SKEW9 = [1, 6, 2, 7, 3, 8, 4, 9, 5]                      # Lamac's interleave 2 (DD) and 3 (HD)
+SKEW = {9: SKEW9, 18: [1, 7, 13, 2, 8, 14, 3, 9, 15, 4, 10, 16, 5, 11, 17, 6, 12, 18],
+        15: [1, 6, 11, 2, 7, 12, 3, 8, 13, 4, 9, 14, 5, 10, 15]}
 SECTOR = 512
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 CPMTOOLS = os.path.join(ROOT, 'Tools', 'cpmtools')
@@ -64,8 +66,6 @@ class Dsk:
                 continue
             ti = d[off:off + 256]
             if not ti.startswith(b'Track-Info'):
-                if trust:
-                    raise ValueError('%s: bad Track-Info at %d' % (path, off))
                 nxt = d.find(b'Track-Info' + bytes([13, 10]), off)    # damaged image: resync on the next track
                 if nxt < 0:
                     break
@@ -102,7 +102,7 @@ class Dsk:
                     # MZ-800 IPL boot track: 16 x 256 B in order
                     self.tracks[(c, h)] = [[c, h, r, 1, 0, 0, bytearray([0xE5]) * 256] for r in range(1, 17)]
                 else:
-                    order = SKEW9 if spt == 9 else list(range(1, spt + 1))
+                    order = SKEW.get(spt, list(range(1, spt + 1)))
                     self.tracks[(c, h)] = [[c, h, r, 2, 0, 0, bytearray([0xE5]) * SECTOR] for r in order]
         return self
 
@@ -136,13 +136,18 @@ class Dsk:
         with open(path, 'wb') as f:
             f.write(header + body)
 
+    def spt(self):
+        """Sectors per track of the data area (cylinder 2, side 0)."""
+        return len(self.tracks.get((2, 0), [None] * 9))
+
     def sector(self, c, h, r):
         for s in self.tracks.get((c, h), []):
             if s[2] == r:
                 return s[6]
         return None
 
-    def to_raw(self, spt=9):
+    def to_raw(self, spt=None):
+        spt = spt or self.spt()
         out = bytearray()
         for t in range(self.cyls * self.sides):
             c, h = t // self.sides, t % self.sides
@@ -151,7 +156,8 @@ class Dsk:
                 out += s if s is not None and len(s) == SECTOR else bytes([0xE5]) * SECTOR
         return bytes(out)
 
-    def from_raw(self, raw, spt=9):
+    def from_raw(self, raw, spt=None):
+        spt = spt or self.spt()
         size = spt * SECTOR
         for t in range(len(raw) // size):
             c, h = t // self.sides, t % self.sides
@@ -168,20 +174,29 @@ def cpm_name(name):
     return (base[:8].ljust(8) + ext[:3].ljust(3)).encode('ascii')
 
 
-def put_files(dsk, capacity, files):
+def cpm_format(capacity, lamac):
+    """cpmtools disk definition and the folder of its diskdefs file for a raw image of the format.
+    The HD formats of Lamac differ from RomWBW's (4K blocks, 4 reserved tracks): mzdev/tools/diskdefs."""
+    if lamac and capacity in (1440, 1200):
+        return 'mz_lamac%d' % (capacity // 10), os.path.dirname(os.path.abspath(__file__))
+    return 'wbw_fd%d' % capacity, CPMTOOLS
+
+
+def put_files(dsk, capacity, files, lamac=True):
     """Copy host files into the CP/M data area with cpmtools. files: list of (host path, CP/M name)."""
-    fmt = 'wbw_fd%d' % capacity
+    fmt, cwd = cpm_format(capacity, lamac)
+    spt = FORMATS[capacity][2]
     fd, img = tempfile.mkstemp(suffix='.img')
     os.close(fd)
     try:
         with open(img, 'wb') as f:
-            f.write(dsk.to_raw())
+            f.write(dsk.to_raw(spt))
         for path, name in files:
             r = subprocess.run([os.path.join(CPMTOOLS, 'cpmcp.exe'), '-f', fmt, img, os.path.abspath(path),
-                                '0:' + name.lower()], cwd=CPMTOOLS, capture_output=True, text=True)
+                                '0:' + name.lower()], cwd=cwd, capture_output=True, text=True)
             if r.returncode:
                 raise RuntimeError('cpmcp %s: %s' % (name, r.stdout + r.stderr))
-        dsk.from_raw(open(img, 'rb').read())
+        dsk.from_raw(open(img, 'rb').read(), spt)
     finally:
         os.remove(img)
 
@@ -192,7 +207,7 @@ def mkboot(capacity, ipl, image=None, image_name='ROMWBW.ROM', sysimg=None, file
     ipl = bytearray(ipl)
     if len(ipl) != 4096 or ipl[0:7] != b'\x03IPLPRO' or ipl[IPL_PARAMS:IPL_PARAMS + 3] != b'RWB':
         raise ValueError('not an MZ-800 RomWBW IPL image')
-    ipl[IPL_PARAMS + 3] = 0 if capacity == 720 else 1          # format
+    ipl[IPL_PARAMS + 3] = {720: 0, 360: 1, 1440: 2, 1200: 3}[capacity]     # format (FMTTBL of mzipl.asm)
     ipl[IPL_PARAMS + 4] = 0                                       # no double stepping
     ipl[IPL_PARAMS + 5:IPL_PARAMS + 16] = cpm_name(image_name)
     for r in range(1, 17):                                        # stored complemented
@@ -201,9 +216,10 @@ def mkboot(capacity, ipl, image=None, image_name='ROMWBW.ROM', sysimg=None, file
         if len(sysimg) > 27 * SECTOR:
             raise ValueError('system image too big for the reserved tracks (%d B)' % len(sysimg))
         sysimg = sysimg.ljust(27 * SECTOR, b'\xE5')
+        spt = FORMATS[capacity][2]
         for i in range(27):
-            c, h = RESERVED[i // 9]
-            d.sector(c, h, i % 9 + 1)[:] = sysimg[i * SECTOR:(i + 1) * SECTOR]
+            c, h = RESERVED[i // spt]
+            d.sector(c, h, i % spt + 1)[:] = sysimg[i * SECTOR:(i + 1) * SECTOR]
     todo = list(files)
     if image is not None:
         todo.insert(0, (image, image_name))
