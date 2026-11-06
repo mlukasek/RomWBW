@@ -27,4 +27,5 @@ pushd ZRC && call Clean & popd
 pushd Z1RCC && call Clean & popd
 pushd ZZRCC && call Clean & popd
 pushd MSX && call Clean & popd
+pushd MZ800 && call Clean & popd
 pushd EZ512 && call Clean & popd

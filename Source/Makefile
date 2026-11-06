@@ -2,11 +2,11 @@
 # order is actually important, because of build dependencies
 #
 
-.PHONY: doc prop shared bp images rom zrc z1rcc zzrcc zrc512 sz80 ez512 msx z280_rcbus
+.PHONY: doc prop shared bp images rom zrc z1rcc zzrcc zrc512 sz80 ez512 msx mz800 z280_rcbus
 
 .SHELLFLAGS = -ce
 
-all: prop shared bp images rom zrc z1rcc zzrcc zrc512 sz80 ez512 msx z280_rcbus
+all: prop shared bp images rom zrc z1rcc zzrcc zrc512 sz80 ez512 msx mz800 z280_rcbus
 
 doc:
 	$(MAKE) --directory Doc $(ACTION)
@@ -60,6 +60,9 @@ ez512:
 
 msx:
 	$(MAKE) --directory MSX $(ACTION)
+
+mz800:
+	$(MAKE) --directory MZ800 $(ACTION)
 
 z280_rcbus:
 	$(MAKE) --directory Z280_RCBUS $(ACTION)
