@@ -67,4 +67,9 @@ Autor: Martin Lukášek. Komunikace **česky**.
 
 - `python mzdev/tests/emu/run_memext.py`: harness, mapování MemExt (PEHU, Lüftner, žádný).
 - `python mzdev/tests/emu/run_hbios.py`: start HBIOS z `Binary/MZ800_std.upd` (po buildu `MZ800 std`).
+- `python mzdev/tests/emu/run_console.py [PEHU|LUFTNER] [--random]`: konzole, klávesnice, tik, ZSDOS.
+- `python mzdev/tests/emu/run_loader.py`: zavaděč MZF z Unikarty až po ZSDOS (po `Source\BuildMZ800.cmd`).
+- Zkouška na reálném HW: `mzdev/docs/test-hw.md`.
 - Další testy podle etap v `mzdev/docs/vyvoj.md`.
+- **Soubory s diakritikou upravovat nástrojem Edit/Write**, ne přes `Get-Content`/`Set-Content` v PowerShellu 5.1. Ten
+  čte UTF-8 bez BOM jako ANSI a rozbije češtinu.

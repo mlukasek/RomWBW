@@ -59,8 +59,18 @@
   - **Klávesnice:** sken matice na každém tiku (háček `VEC_TICK`), fronta 8 kláves, autorepeat po 0,5 s, pak každé 3
     tiky.
   - **Ověřeno:** 100 tiků za 100 snímků, podržené X dá 13 znaků, DEL maže.
-- **Další krok, etapa 3:** zavaděč MZF z Unikarty (`Source/MZ800/`, s detekcí MemExt a hláškou), RTC z Unikarty, RAM
-  disk Unikarty.
+- **Etapa 3, zavaděč z Unikarty je hotový (2026-11-06):** `Source/MZ800/mzfldr.asm` → `Binary/mz800-ldr.mzf`.
+  - Stub na $1200: režim MZ-700, hlavní část na $C000.
+  - Detekce MemExt (PEHU / Lüftner / nic, s hláškou).
+  - Přesun sebe i zásobníku do společné banky přes okno $4000 (kopie, pak přepnutí na stejnou adresu, mezi tím
+    žádný CALL).
+  - Sekvenční čtení `MZ800_std.rom` (aktuální adresář, pak `/romwbw/`) po 32 KB do bank $80–$8B, pak režim 800 a
+    `JP 0`.
+  - Plný `.rom` naplní i RAM disk utilitami RomWBW.
+  - **Ověřeno** (`run_loader.py`): PEHU i Lüftner (náhodná RAM) až po `DIR` s utilitami, chyba bez MemExt, chyba bez
+    souboru.
+  - **Připraveno na 1. test na reálném HW:** návod v [test-hw.md](test-hw.md).
+- **Další krok:** RTC z Unikarty (`ucrtc.asm`) a RAM disk Unikarty (`ucrd.asm`), potom etapa 4 (disketový řadič).
 
 ## Build
 
@@ -86,7 +96,11 @@
 - **Diskety:** jen kopie ve `mzdev/work/`, výchozí `storage_mode=discard`. Emulátor umí poškodit hlavičku DSK.
 - **Unicard v emulátoru:**
   - SEEK funguje, na reálné fw 0.26 ne;
-  - RAM disk Unikarty zastupuje MZ-1R18 SRAM 16M na stejných portech.
+  - RAM disk Unikarty zastupuje MZ-1R18 SRAM 16M na stejných portech;
+  - **past:** s `runtime_check_on_connect = 1` (výchozí) se Unicard nepřipojí, když v SD kořeni chybí runtime Manageru
+    (`unicard/`). Čeká na dialog a porty 50h/51h čtou $FB. Harness proto kontrolu vypíná;
+  - SD kořen testů je `mzdev/work/sd`.
+- **TASM vyhodnocuje výrazy zleva doprava bez priority operátorů:** `A > B + C` je `(A > B) + C`. Závorkovat.
 
 ## Testy
 
@@ -95,6 +109,8 @@
   MemExt). Předpokládá hotový build `MZ800 std`.
 - `python mzdev/tests/emu/run_console.py [PEHU|LUFTNER] [--random]`: konzole a klávesnice, boot ZSDOS, DIR, scroll.
   Text obrazovky čte `mzdev/tools/emu/vramtext.py` (glyfy z `Source/Fonts/font8x8u.bin`).
+- `python mzdev/tests/emu/run_loader.py`: zavaděč MZF z emulované Unikarty až po ZSDOS a `DIR` (PEHU, Lüftner, bez
+  MemExt, bez souboru). Předpokládá build `MZ800 std` a `Source\BuildMZ800.cmd`.
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.
   `Source/HBIOS/hbios_rom.lst`, `romldr.lst`.
 - **Proměnné HBIOS** číst přes `memext_read` z banky $80 (offset 0), ne přes pohled CPU. Ten ukazuje banku, která

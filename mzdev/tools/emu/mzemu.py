@@ -91,7 +91,10 @@ class Emu:
                           'pezik_e8_pluged': '0', 'pezik_68_pluged': '0'},
               'UNICARD': {'connected': '1' if unicard_sd else '0', 'fw_version': str(unicard_fw),
                           'sd_root': os.path.abspath(unicard_sd) if unicard_sd else 'SD-mz800',
-                          'managed_fdc': '0x00'},
+                          'managed_fdc': '0x00',
+                          # our SD root has no Unicard Manager runtime ({SD}/unicard/); with the check on, the
+                          # emulator would wait for a dialog and leave the card disconnected
+                          'runtime_check_on_connect': '0'},
               'QDISK': {'mz1f11_connected': '0'},
               'IDE8': {'hdd0_connected': '0', 'hdd1_connected': '0'},
               'FDC': {'connected': '1', 'hd_patch': '1' if hd_patch else '0', 'bus_xlate': 'invert'},
