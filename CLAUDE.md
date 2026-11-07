@@ -69,7 +69,13 @@ Autor: Martin Lukášek. Komunikace **česky**.
 - `python mzdev/tests/emu/run_hbios.py`: start HBIOS z `Binary/MZ800_std.upd` (po buildu `MZ800 std`).
 - `python mzdev/tests/emu/run_console.py [PEHU|LUFTNER] [--random]`: konzole, klávesnice, tik, ZSDOS.
 - `python mzdev/tests/emu/run_loader.py`: zavaděč MZF z Unikarty až po ZSDOS (po `Source\BuildMZ800.cmd`).
+- Disky: `run_ucrd.py` (RAM disk Unikarty), `run_fd.py` (DD), `run_hd.py` (HD), `run_fmt.py` (MZFMT).
+- Boot a systémy: `run_ipl.py` (boot z diskety, MZSYS, asi 15 min), `run_cpm3.py`, `run_rwimg.py`, `run_uc.py`.
 - Zkouška na reálném HW: `mzdev/docs/test-hw.md`.
 - Další testy podle etap v `mzdev/docs/vyvoj.md`.
+- **Emulátor spouštět vždy jen jeden najednou** (sdílený ini v `mzdev/work/emu`). Dlouhé testy na pozadí s výstupem
+  do souboru.
+- **Python s `'\n'` v řetězcích** neupravovat přes heredoc v Bash (shell ho převede na konec řádku), ale nástrojem
+  Edit.
 - **Soubory s diakritikou upravovat nástrojem Edit/Write**, ne přes `Get-Content`/`Set-Content` v PowerShellu 5.1. Ten
   čte UTF-8 bez BOM jako ANSI a rozbije češtinu.
