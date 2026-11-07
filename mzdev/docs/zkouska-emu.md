@@ -38,6 +38,14 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
 - **SD karta obsahuje i runtime Unikarty z emulátoru** (`unicard/`: Manager, QuickDisk, `mzfloader.cfg`).
 - **Klávesy MZ-800 na PC:** BLANK = `` ` `` (vlevo od 1), ALPHA = `\`, GRAPH = Caps Lock, INST = Insert, DEL =
   Backspace, ESC = Esc nebo End, CTRL = levý Ctrl.
+- **Šipky** posílají jako všude v RomWBW sekvence ANSI (`ESC [ A`…, překládá je `ansi.asm`). Rozumí jim
+  celoobrazovkové programy pro ANSI terminál, příkazová řádka je vypíše jako `^[[A`.
+- **Editace příkazové řádky:**
+  - ZSDOS, CP/M 2.2: Backspace/DEL, `^X` (celá řádka), `^U`, `^R`; BLANK vyvolá poslední příkaz;
+  - CP/M 3: `^A`/`^F` vlevo/vpravo, `^B` začátek/konec, `^G` znak, `^K` vpravo, `^X` vlevo, `^W` poslední
+    příkaz;
+  - ZPM3: `^S`/`^D` vlevo/vpravo, `^A`/`^F` o slovo, `^E`/`^W` historie, `^B`, `^G`, `^T` slovo, `^K`, `^X`,
+    `^Y` celá řádka (`Doc/CPM/ZPM3.txt`).
 
 ## Doporučené pořadí
 
