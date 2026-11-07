@@ -6,6 +6,7 @@
     python mzdev/tools/mzdsk.py info work/dsk/b720.dsk
     python mzdev/tools/mzdsk.py mkboot work/dsk/boot.dsk 720 [--ipl Binary/mz800-ipl.bin] [--sys zsys_wbw.sys]
                                 [--image Binary/MZ800_std.rom] [--file path[=NAME.EXT] ...]
+                                [--def Source/Images/fd_cpm3.txt]
 
 Formats: 720 = 80x2x9x512, 360 = 40x2x9x512 (sector IDs 1..9, interleave 1,6,2,7,3,8,4,9,5 as Lamac formats).
 --lamac makes cylinder 0 / side 1 the MZ-800 IPL boot track (16 sectors of 256 B), as on Lamac's system disks.
@@ -24,6 +25,7 @@ The DSK holds the bytes as they are on the disk. The MZ-800 bus inverts them, th
 RomWBW mzfd.asm) complement them again, so the data area of the DSK is what CP/M sees.
 """
 import argparse
+import glob
 import os
 import struct
 import subprocess
@@ -183,7 +185,8 @@ def cpm_format(capacity, lamac):
 
 
 def put_files(dsk, capacity, files, lamac=True):
-    """Copy host files into the CP/M data area with cpmtools. files: list of (host path, CP/M name)."""
+    """Copy host files into the CP/M data area with cpmtools. files: list of (host path, CP/M name), the name
+    may start with a user number ('15:SETPATH.COM')."""
     fmt, cwd = cpm_format(capacity, lamac)
     spt = FORMATS[capacity][2]
     fd, img = tempfile.mkstemp(suffix='.img')
@@ -192,13 +195,48 @@ def put_files(dsk, capacity, files, lamac=True):
         with open(img, 'wb') as f:
             f.write(dsk.to_raw(spt))
         for path, name in files:
+            dest = name.lower() if ':' in name else '0:' + name.lower()      # 'NAME.EXT' or 'user:NAME.EXT'
             r = subprocess.run([os.path.join(CPMTOOLS, 'cpmcp.exe'), '-f', fmt, img, os.path.abspath(path),
-                                '0:' + name.lower()], cwd=cwd, capture_output=True, text=True)
+                                dest], cwd=cwd, capture_output=True, text=True)
             if r.returncode:
                 raise RuntimeError('cpmcp %s: %s' % (name, r.stdout + r.stderr))
         dsk.from_raw(open(img, 'rb').read(), spt)
     finally:
         os.remove(img)
+
+
+def image_def(deffile, budget=None):
+    """System image and files of a RomWBW floppy image definition (Source/Images/fd_*.txt): lines 'path user:'
+    with wildcards relative to the file, '@SysImage=...'. Returns (system image path, [(host path,
+    'user:NAME.EXT')]). The files of the system itself (lines naming it, e.g. 'zpm3') come first; with a budget
+    (bytes, counted in 4K blocks) the rest is taken only while it fits."""
+    base = os.path.dirname(os.path.abspath(deffile))
+    lines = [l.strip() for l in open(deffile)]
+    own = os.path.splitext(os.path.basename(deffile))[0].split('_', 1)[1].lower()      # fd_zpm3.txt -> zpm3
+    # as BuildDsk.ps1: the folders d_<name>/u<user> belong to the image too
+    for udir in sorted(glob.glob(os.path.join(base, 'd_' + own, 'u*'))):
+        user = os.path.basename(udir)[1:]
+        if user.isdigit():
+            lines.append('d_%s/u%s/*.* %s:' % (own, user, user))
+    lines.sort(key=lambda l: 0 if own in l.lower() else 1)
+    sysimg, files, seen, used = None, [], set(), 0
+    for line in lines:
+        if line.startswith('@SysImage='):
+            sysimg = os.path.normpath(os.path.join(base, line.split('=', 1)[1].strip('"')))
+        if not line or line[0] in '#@':
+            continue
+        pat, user = line.rsplit(None, 1)
+        for path in sorted(glob.glob(os.path.join(base, pat))):
+            key = (user, os.path.basename(path).upper())
+            if not os.path.isfile(path) or key in seen:
+                continue
+            size = (os.path.getsize(path) + 4095) // 4096 * 4096
+            if budget is not None and used + size > budget:
+                continue
+            used += size
+            seen.add(key)
+            files.append((path, user + os.path.basename(path).upper()))
+    return sysimg, files
 
 
 def mkboot(capacity, ipl, image=None, image_name='ROMWBW.ROM', sysimg=None, files=()):
@@ -249,6 +287,8 @@ def main():
                    help='RomWBW image, stored as ROMWBW.ROM ("" for none)')
     p.add_argument('--sys', help='CP/M system for the reserved tracks (e.g. Binary/ZSDOS/zsys_wbw.sys)')
     p.add_argument('--file', action='append', default=[], help='host file [=CP/M name], repeatable')
+    p.add_argument('--def', dest='deffile', help='RomWBW image definition (Source/Images/fd_cpm3.txt): its system '
+                   'image and files (as many as fit)')
     a = ap.parse_args()
     if a.cmd == 'mkboot':
         files = []
@@ -256,6 +296,14 @@ def main():
             path, _, name = spec.partition('=')
             files.append((path, name or os.path.basename(path)))
         sysimg = open(a.sys, 'rb').read() if a.sys else None
+        if a.deffile:
+            room = {720: 650, 360: 300, 1440: 1250, 1200: 1000}[a.capacity] * 1024
+            if a.image:
+                room -= os.path.getsize(a.image)
+            dsys, dfiles = image_def(a.deffile, room)
+            if sysimg is None and dsys:
+                sysimg = open(dsys, 'rb').read()
+            files += dfiles
         d = mkboot(a.capacity, open(a.ipl, 'rb').read(), a.image or None, sysimg=sysimg, files=files)
         d.save(a.dsk)
         print('%s: %dK MZ boot disk, %d files%s' % (a.dsk, a.capacity, len(files) + (1 if a.image else 0),

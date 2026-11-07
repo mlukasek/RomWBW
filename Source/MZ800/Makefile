@@ -1,4 +1,4 @@
-OBJECTS = mz800-ldr.mzf mz800-ipl.bin mzsys.com mzfmt.com
+OBJECTS = mz800-ldr.mzf mz800-ipl.bin mzsys.com mzfmt.com uc.com
 DEST = ../../Binary
 TOOLS = ../../Tools
 include $(TOOLS)/Makefile.inc
@@ -18,3 +18,7 @@ mzsys.com: mzsys.asm mzipl.asm mzcommon.asm
 mzfmt.com: mzfmt.asm
 	$(TASM) $< $@ mzfmt.lst
 	cp mzfmt.com $(DEST)/Apps/mzfmt.com
+
+uc.com: uc.asm
+	$(TASM) $< $@ uc.lst
+	cp uc.com $(DEST)/Apps/uc.com

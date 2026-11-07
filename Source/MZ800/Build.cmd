@@ -26,3 +26,7 @@ if exist mzsys.com copy mzsys.com ..\..\Binary\Apps\ || exit /b
 tasm -t80 -g3 mzfmt.asm mzfmt.com mzfmt.lst || exit /b
 
 if exist mzfmt.com copy mzfmt.com ..\..\Binary\Apps\ || exit /b
+
+tasm -t80 -g3 uc.asm uc.com uc.lst || exit /b
+
+if exist uc.com copy uc.com ..\..\Binary\Apps\ || exit /b
