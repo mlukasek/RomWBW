@@ -98,7 +98,9 @@ Fakta, na kterých port stojí, se zdroji. Co je jen z emulátoru, je tak označ
   - fw 0.26: SEEK nefunguje (v emulátoru ano), READDIR nevrací jméno (použít FILELIST + STAT);
   - RTC: 62h datum, 63h čas.
   - Specifikace: `E:\SAPI_GIT\SAPI_DPI-firmware\docs\unicard.md`.
-- **Boot:** `/unicard/mzfloader.cfg` → MZF. Manager spouští MZF v režimu MZ-700 od 1200h.
+- **Boot:** Q + reset nabootuje QuickDisk Unikarty (`/unicard/mzfloader.mzq`, zavaděč SC3SROM na 1200h–12A5h)
+  a ten spustí MZF z `/unicard/mzfloader.cfg`, standardně Manager (`/unicard/mgr800.mzf`, na 3000h). MZF pro
+  `mzfloader.cfg` nesmí ležet na 1200h–12A5h, proto zavaděč RomWBW začíná na 2000h.
 - **Zdroje:** `..\unicard-mk3b\src\emu_RAMDISC.c`, `emu_MZFREPO.c`, `..\MZ-UniPi\docs\kompatibilita.md`.
 
 ## Video (GDG) a vstupy

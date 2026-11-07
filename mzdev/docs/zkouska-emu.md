@@ -22,14 +22,18 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
 - **Režimy:**
   - `unicard` (výchozí): zavaděč z Unikarty (emulátor ho spustí jen při startu), v mechanice 0 je prázdná
     `blank720.dsk`, v mechanice 1 `lamac_prg.dsk`;
-    - **po resetu** je menu ROM MZ-800: `C` nahraje MZF z kazety, s „CMT hackem“ emulátoru vyber
-      `mzdev/work/play/sd/mz800-ldr.mzf`. Nebo emulátor zavři a spusť `play.py` znovu;
+    - **po resetu** je menu ROM MZ-800 (F, Q, C, M):
+      - `Q` nabootuje QuickDisk Unikarty a ten spustí Unicard Manager;
+      - v Manageru vyber `mz800-ldr.mzf` a spusť ho;
+      - s volbou `--autoboot` spustí `Q` rovnou RomWBW (`/unicard/mzfloader.cfg` ukazuje na zavaděč, jako na
+        skutečné Unikartě);
   - `floppy`: zapnutí s `boot720.dsk` v mechanice 0, ROM MZ-800 nabootuje z diskety;
   - `hd`: totéž s `boot144.dsk`;
   - `cpm3`: totéž s `cpm3_144.dsk`.
 - `--fd0`, `--fd1` vloží jinou disketu do mechaniky 0 nebo 1 (v mechanice 1 je jinak `blank720.dsk`, v režimu
   `unicard` `lamac_prg.dsk`). Diskety jdou měnit i v menu emulátoru.
 - **Reset v režimech `floppy`, `hd`, `cpm3`** vždy znovu nabootuje RomWBW z diskety v mechanice 0.
+- **SD karta obsahuje i runtime Unikarty z emulátoru** (`unicard/`: Manager, QuickDisk, `mzfloader.cfg`).
 - **Klávesy MZ-800 na PC:** BLANK = `` ` `` (vlevo od 1), ALPHA = `\`, GRAPH = Caps Lock, INST = Insert, DEL =
   Backspace, ESC = Esc nebo End, CTRL = levý Ctrl.
 

@@ -60,7 +60,10 @@
     tiky.
   - **Ověřeno:** 100 tiků za 100 snímků, podržené X dá 13 znaků, DEL maže.
 - **Etapa 3, zavaděč z Unikarty je hotový (2026-11-06):** `Source/MZ800/mzfldr.asm` → `Binary/mz800-ldr.mzf`.
-  - Stub na $1200: režim MZ-700, hlavní část na $C000.
+  - Stub na $2000 (do 2026-11-07 $1200): režim MZ-700, hlavní část na $C000.
+    - **Proč ne $1200:** zavaděč QuickDisku Unikarty (SC3SROM), který při zapnutí spouští MZF
+      z `/unicard/mzfloader.cfg`, leží na $1200–$12A5. MZF nahrávané na $1200 by ho přepsalo. Ověřeno
+      v emulátoru, Manager se nahrává na $3000.
   - Detekce MemExt (PEHU / Lüftner / nic, s hláškou).
   - Přesun sebe i zásobníku do společné banky přes okno $4000 (kopie, pak přepnutí na stejnou adresu, mezi tím
     žádný CALL).

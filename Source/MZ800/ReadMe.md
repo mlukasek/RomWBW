@@ -71,7 +71,9 @@ a loader puts it into MemExt RAM and starts HBIOS. It is built as
 1. Copy `Binary/mz800-ldr.mzf` and `Binary/MZ800_std.rom` to the Unicard
    SD card, into the same directory or the image into `/romwbw/`.
 2. Start `mz800-ldr.mzf` from the Unicard Manager, or name it in
-   `/unicard/mzfloader.cfg` to start it at power on.
+   `/unicard/mzfloader.cfg` to start it at power on (Q at the boot menu of
+   the MZ-800 boots the QuickDisk of the Unicard, its loader SC3SROM at
+   $1200-$12A5 starts that MZF; so `mz800-ldr.mzf` loads at $2000).
 
 The loader detects MemExt (without it, it stops with a message),
 moves itself into the common bank, reads the image sequentially

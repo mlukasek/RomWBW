@@ -1,7 +1,7 @@
 """Stage 3: the Unicard loader Binary/mz800-ldr.mzf.
 
 The emulated Unicard SD card is mzdev/work/sd with the image in /romwbw/MZ800_std.rom (the loader first tries the
-current directory, which is / after reset, then /romwbw). The MZF is loaded at $1200 as the Unicard Manager does and
+current directory, which is / after reset, then /romwbw). The MZF is loaded at its load address ($2000) as the Unicard Manager does and
 started. Checks:
 - with PEHU and Luftner: loader messages, HBIOS boot loader prompt, the RAM disk filled from the .rom image (DIR shows
   the RomWBW utilities after booting ZSDOS);

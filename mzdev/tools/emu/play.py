@@ -18,6 +18,10 @@ window and its own ini (mzdev/work/play/mz800emu.ini, the emulator's own ini sta
     martin144.dsk Lamac's 1.44M disk
     blank720.dsk, blank144.dsk  empty disks in Lamac's format (MZ layout)
 
+Unicard: the runtime of the emulator (unicard/) is put on the SD card, so Q + reset boots the QuickDisk of the
+Unicard and starts the Unicard Manager (mz800-ldr.mzf is in the root of the SD card), with --autoboot the RomWBW
+loader directly. C + reset loads from the tape, M + reset enters the monitor.
+
 Start modes:
     unicard  the Unicard loader runs (--run-mzf, only at the start of the emulator). Drive 0 holds the empty
              blank720.dsk, so a reset ends in the menu of the MZ-800 ROM (C loads an MZF from the tape: with the
@@ -41,6 +45,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
 from mzemu import EMU_DIR, ROOT, WORK, emu_overrides, make_ini  # noqa: E402
+
 from mzdsk import Dsk, mkboot, image_def  # noqa: E402
 
 PLAY = os.path.join(WORK, 'play')
@@ -49,6 +54,19 @@ DSK = os.path.join(PLAY, 'dsk')
 RAMDISK = os.path.join(PLAY, 'ucrd16.img')
 BIN = os.path.join(ROOT, 'Binary')
 SIBLING = os.path.dirname(ROOT)
+
+
+def unicard_runtime(autoboot):
+    """The Unicard runtime of the emulator on our SD card (unicard/: mgr800.mzf = Unicard Manager, mzfloader.mzq =
+    the QuickDisk loader that Q + reset boots, mzfloader.cfg = the MZF it starts). autoboot: our loader instead of
+    the Manager, as /unicard/mzfloader.cfg does on a real Unicard."""
+    dst = os.path.join(SD, 'unicard')
+    if not os.path.isdir(dst):
+        shutil.copytree(os.path.join(EMU_DIR, 'SD-mz800', 'unicard'), dst)
+    target = '/mz800-ldr.mzf' if autoboot else '/unicard/mgr800.mzf'
+    with open(os.path.join(dst, 'mzfloader.cfg'), 'wb') as f:
+        f.write(target.encode('ascii') + bytes([13]))     # CR terminated
+    return target
 
 
 def prepare(fresh):
@@ -106,8 +124,11 @@ def main():
     ap.add_argument('--fd1', help='disk in drive 1 (name in mzdev/work/play/dsk)')
     ap.add_argument('--luftner', action='store_true', help='MemExt Luftner instead of PEHU')
     ap.add_argument('--fresh', action='store_true', help='make the SD card, RAM disk and disks again')
+    ap.add_argument('--autoboot', action='store_true',
+                    help='Q + reset starts the RomWBW loader (/unicard/mzfloader.cfg) instead of the Unicard Manager')
     a = ap.parse_args()
     prepare(a.fresh)
+    print('Q + reset starts', unicard_runtime(a.autoboot))
     fd0 = a.fd0 or {'unicard': 'blank720.dsk', 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk',
                     'cpm3': 'cpm3_144.dsk'}[a.mode]
     fd1 = a.fd1 or ('lamac_prg.dsk' if a.mode == 'unicard' else 'blank720.dsk')

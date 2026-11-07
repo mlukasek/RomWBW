@@ -2,7 +2,7 @@
 ;	ROMWBW LOADER FOR THE SHARP MZ-800 WITH UNICARD
 ;======================================================================
 ;
-; MZF PROGRAM, LOADED AT $1200 BY THE UNICARD MANAGER (OR STARTED AT
+; MZF PROGRAM, LOADED AT $2000 BY THE UNICARD MANAGER (OR STARTED AT
 ; POWER ON THROUGH /UNICARD/MZFLOADER.CFG).  IT:
 ;
 ;  1. DETECTS THE MEMEXT MEMORY EXPANSION (PEHU OR LUFTNER, 512K).
@@ -42,13 +42,16 @@ TXT_ROWS	.EQU	25
 COM_BANK	.EQU	15		; BID_COM ($8F) AS 32K MEMEXT BANK
 MAX_BANKS	.EQU	12		; LOAD AT MOST BANKS $80-$8B
 ;
+LDR_ORG		.EQU	$2000		; LOAD ADDRESS: NOT $1200, THERE IS THE QUICKDISK LOADER OF
+					; THE UNICARD (SC3SROM, $1200-$12A5) THAT STARTS THE MZF OF
+					; /UNICARD/MZFLOADER.CFG AT POWER ON
 MAIN_LOC	.EQU	$C000		; MAIN PART RUNS HERE (4K, COPIED WITH STACK)
 ;
 ;======================================================================
 ; MZF HEADER (128 BYTES)
 ;======================================================================
 ;
-	.ORG	$1200 - 128
+	.ORG	LDR_ORG - 128
 ;
 	.DB	$01			; OBJECT FILE
 	.DB	"ROMWBW LOADER", $0D	; NAME, CR TERMINATED
@@ -59,7 +62,7 @@ MAIN_LOC	.EQU	$C000		; MAIN PART RUNS HERE (4K, COPIED WITH STACK)
 	.FILL	104, 0			; COMMENT
 ;
 ;======================================================================
-; STUB AT $1200: KNOWN MEMORY MAP, MAIN PART TO $C000
+; STUB AT LDR_ORG: KNOWN MEMORY MAP, MAIN PART TO $C000
 ;======================================================================
 ;
 LDR_START:
