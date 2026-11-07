@@ -46,7 +46,9 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
    - `DIR`, `ASSIGN`, psaní, šipky, BLANK (vyvolá poslední řádek), ALPHA (Caps Lock);
    - `DIR C:` ukáže Lamačovu disketu (mechanika 1), `COPY B:=C:PIP.COM` zapíše na prázdnou disketu v mechanice
      0, `STAT B:DSK:`;
-   - `TIME`, `TIMER`.
+   - `WDATE` ukáže čas z RTC Unikarty (`WDATE RR MM DD HH MM SS` ho nastaví). Na A: není, leží ve slice 0 RAM disku
+     Unikarty (`UCRD0:0`, písmeno ukáže výpis při bootu ZSDOS), tedy např. `D:WDATE`. `TIMER` ukáže tik 50 Hz.
+   - **Ne Lamačův `TIME` z C:**, viz „Lamačovy programy pod RomWBW“ níže.
 2. **RAM disk Unikarty:** v menu romldr `3` nabootuje CP/M 3 a `3.1` ZPM3. `DIR`, prompt ZPM3 ukazuje čas.
 3. **`play.py floppy`:**
    - ROM ukáže „IPL IS LOADING ROMWBW“, pak zavaděč z diskety a menu;
@@ -78,3 +80,18 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
   - Lamačovo CP/M nabootuje z `lamac_prg.dsk`, `lamac_sys.dsk` a `martin144.dsk` v mechanice 0. `play.py` při
     nich varuje.
   - **Oprava:** `--new-ramdisk` vytvoří RAM disk znovu (diskety a SD karta zůstanou).
+
+## Lamačovy programy pod RomWBW
+
+Obecné programy pro CP/M z Lamačových disket běží. Programy, které sahají do paměti nebo BIOSu Lamačova CP/M, ne.
+RomWBW má CP/M 2.2 jinde: CCP `$D000`, BDOS `$D800` (vstup `$D806`), CBIOS `$E600–$FDFF`.
+
+- **`TIME.COM`** (Lamač 1988) čte a zapisuje hodiny Lamačova BIOSu na `$EA40–$EA42` (sekundy od půlnoci). Pod
+  RomWBW je tam kód CBIOS, takže ukáže nesmysl.
+  - **Čas jím nenastavovat:** přepsal by 3 bajty CBIOS.
+  - Místo něj `WDATE` (viz výše).
+- **`UNIUTIL.COM`** (Turbo Pascal 3, zdroják `UU.PAS` na disketě) potřebuje BDOS aspoň na `$D942`. Pod ZSDOS
+  a CP/M 2.2 (`$D806`) skončí hláškou „Not enough memory“.
+  - Pod CP/M 3 / ZPM3 (TPA 60K) by projít měl (neověřeno).
+  - Jeho nastavení času CP/M zapisuje také na `$EA40`.
+  - Soubory SD karty a obraz RAM disku obslouží `UC` (`DIR`, `CD`, `GET`, `PUT`, `MOUNT`), RTC Unikarty `WDATE`.
