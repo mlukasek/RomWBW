@@ -73,6 +73,17 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
   - GRAPH zatím volná.
 - **Čeština (možná později):** potřebuje font s českými znaky (CP437 v RomWBW je nemá) a volbu kódování. Lamač
   pravděpodobně používá Kamenických, neověřeno.
+- **Klávesy Lamače 4.1, změřeno v emulátoru (2026-11-07,** `CPMv41 System.dsk`, program na výpis kódů BIOS CONIN):
+  - **Šipky** ↑ ↓ ← → dávají `^E ^X ^S ^D` (kříž WordStaru). Příkazovou řádku needitují ani u Lamače: CCP vypíše
+    `^S`/`^D`, `^X` smaže řádku. Slouží programům s klávesami WordStaru (WordStar, editor Turbo Pascalu, ZDE).
+  - **BLANK** přehraje předchozí příkaz jako stisky kláves (bez CR). Další BLANK vymaže řádku a dá starší příkaz.
+    - Historie je kruhový buffer zhruba 240–256 bajtů: 16 příkazů po 3 znacích se vejde všech, z 16 po 24 znacích
+      jen posledních 9, pak zbytek přepsaného a znovu od nejnovějšího.
+    - **Dopředu nejde:** SHIFT+BLANK nic nedělá, CTRL+BLANK je jako BLANK.
+    - **Chyba u nejstaršího příkazu** (buffer ještě nepřetekl): řádka se nevymaže a příkaz se připojí
+      (`a02a01`).
+  - **F1–F5** vrátí celé příkazy `DIR A:⏎` … `DIR E:⏎` (popisky na stavovém řádku; na disketě je `DEFKEY.COM`).
+  - **DEL** `7F`, **ESC** `1B`, **TAB** `09`, **GRAPH** přepne režim (stavový řádek `GRAP`), kód nevrací.
 
 ### Font konzole (autor, 2026-11-06)
 
