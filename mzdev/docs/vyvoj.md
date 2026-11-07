@@ -220,7 +220,31 @@
 - **Zavaděč IPL pro HD (rozpracováno):** formáty 2 (1,44M) a 3 (1,2M) v `FMTTBL` (sektory na stopu, bloky 4K,
   adresář 16 sektorů, 16bitová čísla bloků, EXM 1). Sektory HD čte přes přerušení do `BOUNCE` ($A000). $0038
   leží v nahrávané bance, proto se po každém sektoru obnoví. MZSYS pozná formát z DPB.
-- **Další krok:** ověřit boot z HD diskety v emulátoru, pak etapa 7 (CP/M 3/ZPM3, UC.COM, dokumentace).
+  - **Ověřeno** (`run_hd.py`): bootovací disketa 1,44M (`mzdsk.py mkboot … 1440`) nabootuje přes IPL a romldr
+    až do ZSDOS z disku.
+- **Etapa 7, CP/M 3 (2026-11-07):** bez zásahu do kódu, stačí disk se zavaděčem CP/M 3 v rezervovaných stopách.
+  - **Bootovací disketa:** `mzdsk.py mkboot boot.dsk 1440 --image Binary/MZ800_std.upd --def
+    Source/Images/fd_cpm3.txt`. `--def` vezme systém (`cpmldr.sys`) a soubory z definice obrazu RomWBW
+    i s uživatelskými oblastmi, dokud se vejdou.
+  - **Na stroji:** `SYSCOPY D:=CPMLDR.SYS` a soubory `CPM3.SYS`, `CCP.COM` na disketu, pak boot z ní přes romldr.
+  - **Ověřeno** (`run_cpm3.py`): CP/M 3 banked z HD diskety, CPMLDR hlásí **60K TPA**, DIR.
+  - **ZPM3:** taky 60K TPA, prompt `A0:SYSTEM>`.
+    - Soubory ZPM3 (SETPATH…) jsou ve složkách `Source/Images/d_zpm3/u<n>`. Build RomWBW je do obrazu přidává
+      automaticky, `mzdsk.py image_def` taky.
+    - „81:81“ v promptu je čas ZPM3: v testu chybí Unikarta, takže HBIOS nemá RTC.
+- **`UC.COM` (2026-11-07):** soubory SD karty Unikarty z CP/M (`Source/MZ800/uc.asm` → `Binary/Apps/uc.com`).
+  - **Příkazy:** `UC DIR [cesta]`, `UC CD cesta`, `UC GET sd [d:soubor]`, `UC PUT d:soubor [sd]`, `UC MOUNT obraz`
+    (obraz RAM disku Unikarty, pak restart).
+  - **Repozitář Unikarty:**
+    - FILELIST $42 (bez cesty posílá „.“, prázdná cesta je kořen);
+    - CHDIR $21, GETCWD $22, OPEN $50 (čtení $01, zápis $0A), SIZE $56, CLOSE $54, MOUNT $10 (jednotka 4);
+    - data přes INIR/OTIR na $51;
+    - na začátku $01 (překladač ASCII).
+  - **GET** uloží přesnou velikost zaokrouhlenou na 128 B (doplní ^Z), **PUT** celé záznamy.
+  - **Ověřeno** (`run_uc.py`): DIR kořene, GET 1000 B, PUT zpět (1024 B, shoda), CD do `romwbw`.
+  - **Dekodér obrazovky v testech** (`vramtext.py`) teď zná polohu kurzoru (`MZV_POS`, `MZV_CURVIS`). Dřív četl
+    `_` jako mezeru, protože prázdná buňka s kurzorem vypadá stejně.
+- **Další krok:** anglická dokumentace platformy (pro PR), test-hw pro CP/M 3 a UC.
 
 ## Build
 
@@ -266,7 +290,10 @@
 - `python mzdev/tests/emu/run_ipl.py`: boot z diskety (IPL, romldr z FD0), MZSYS, nová bootovací disketa (asi
   15 min). Předpokládá build `MZ800 std` a `Source\BuildMZ800.cmd`.
 - `python mzdev/tests/emu/run_fmt.py`: MZFMT v rozložení MZ i PC, kontrola stop v DSK a souboru přes cpmtools.
-- `python mzdev/tests/emu/run_hd.py`: HD 1,44M Lamače (přerušení od DRQ), STAT, DIR, COPY, tik, cpmtools.
+- `python mzdev/tests/emu/run_hd.py`: HD 1,44M Lamače (přerušení od DRQ), STAT, DIR, COPY, tik, cpmtools, boot
+  z HD diskety.
+- `python mzdev/tests/emu/run_cpm3.py`: CP/M 3 a ZPM3 z bootovací diskety 1,44M (soubory z `Source/Images`).
+- `python mzdev/tests/emu/run_uc.py`: UC.COM (DIR, GET, PUT, CD na SD kartě Unikarty).
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.
   `Source/HBIOS/hbios_rom.lst`, `romldr.lst`.
 - **Proměnné HBIOS** číst přes `memext_read` z banky $80 (offset 0), ne přes pohled CPU. Ten ukazuje banku, která
