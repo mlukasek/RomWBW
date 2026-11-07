@@ -254,6 +254,17 @@
     nabootuje CP/M 3.
   - Pro uživatele je to nejjednodušší cesta k CP/M 3: obraz RAM disku na SD kartě složit ze dvou slice hd1k.
 - **Anglický přehled platformy:** `Source/MZ800/ReadMe.md` (hardware, konzole, disky, boot, utility, omezení).
+- **Vlastní disk A: pro MZ-800 (2026-11-07):**
+  - `Source/MZ800/Build.cmd` (a `Makefile`) vezme `RomDsk/rom256_wbw.dat` a odebere programy pro cizí hardware:
+    `FDU` (řadiče 765), `FLASH` (flash ROM) a `RTC` (DS1302). Přidá `UC`, `MZSYS`, `MZFMT` a `WDATE` (čas přes
+    HBIOS, z `Source/Images/Common/All/u15`).
+  - Pak složí `Binary/MZ800_*.rom` znovu jako `.upd` + `mzramdsk.bin`. Volné místo je 24 KB z 256 KB.
+  - Standardní obsah se nevejde: 248 KB, `WDATE` pak skončí `device full`.
+  - cpmtools hledají `diskdefs` v aktuální složce, proto dávka běží v `Source/RomDsk`. Zdrojové cesty musí mít
+    dopředná lomítka, jinak je `cpmcp` vezme celé jako jméno souboru.
+  - **Ověřeno** (`run_drva.py`): obsah A:, `WDATE` ukáže datum hostitele, `UC DIR` z A:.
+  - **Nastavení času** (`WDATE RR MM DD HH MM SS` → `UCRTC_SETTIM`) emulátor neumí, příkazy $60/$61 nemá
+    obsloužené. Ověří až reálná Unikarta.
 - **Další krok:** podle výsledků testů na reálném HW. Možná vylepšení:
   - rychlejší zavaděč IPL (čtení celých stop);
   - formátování HD;
@@ -269,6 +280,9 @@
   ```
 
 - **Bez parametrů** `Build.cmd` čeká na interaktivní volbu platformy. Na pozadí to zamrzne.
+- **Po samotném buildu HBIOS** (`Source\HBIOS\Build.cmd MZ800 std`) spustit `Source\BuildMZ800.cmd`. Teprve ten
+  dá do `MZ800_std.rom` disk A: pro MZ-800.
+- **Kód návratu** `cmd /c … BuildMZ800.cmd` byl i po chybě `cpmcp` 0 (2026-11-07). Chyby hledat ve výpisu.
 - **Upstream nechává** po buildu nesledované `*.err` a `Source/HBIOS/hbios_env.cmd`. Jsou v `.git/info/exclude`
   (lokálně, necommituje se).
 
@@ -308,6 +322,8 @@
   z HD diskety.
 - `python mzdev/tests/emu/run_cpm3.py`: CP/M 3 a ZPM3 z bootovací diskety 1,44M (soubory z `Source/Images`).
 - `python mzdev/tests/emu/run_uc.py`: UC.COM (DIR, GET, PUT, CD na SD kartě Unikarty).
+- `python mzdev/tests/emu/run_drva.py`: disk A: pro MZ-800 (UC, MZSYS, MZFMT, WDATE; bez FDU, FLASH, RTC), WDATE
+  s datem hostitele, UC z A:. Předpokládá `Source\BuildMZ800.cmd`.
 - `python mzdev/tests/emu/run_rwimg.py`: obrazy RomWBW (`hd1k_*` jako RAM disk Unikarty, `fd144_cpm3` jako
   disketa), boot CP/M 3 a ZPM3.
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.

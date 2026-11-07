@@ -46,8 +46,9 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
    - `DIR`, `ASSIGN`, psaní, šipky, BLANK (vyvolá poslední řádek), ALPHA (Caps Lock);
    - `DIR C:` ukáže Lamačovu disketu (mechanika 1), `COPY B:=C:PIP.COM` zapíše na prázdnou disketu v mechanice
      0, `STAT B:DSK:`;
-   - `WDATE` ukáže čas z RTC Unikarty (`WDATE RR MM DD HH MM SS` ho nastaví). Na A: není, leží ve slice 0 RAM disku
-     Unikarty (`UCRD0:0`, písmeno ukáže výpis při bootu ZSDOS), tedy např. `D:WDATE`. `TIMER` ukáže tik 50 Hz.
+   - `WDATE` ukáže čas z RTC Unikarty. `WDATE RR MM DD HH MM SS` ho nastaví, emulátor ale nastavení neumí.
+     `TIMER` ukáže tik 50 Hz.
+   - `UC DIR` vypíše kořen SD karty (`UC` je na A: stejně jako `MZSYS` a `MZFMT`).
    - **Ne Lamačův `TIME` z C:**, viz „Lamačovy programy pod RomWBW“ níže.
 2. **RAM disk Unikarty:** v menu romldr `3` nabootuje CP/M 3 a `3.1` ZPM3. `DIR`, prompt ZPM3 ukazuje čas.
 3. **`play.py floppy`:**
@@ -58,7 +59,7 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
    - ukončit emulátor a nabootovat novou disketu: `play.py floppy --fd0 blank720.dsk`.
 4. **`play.py hd --fd1 martin144.dsk`:** boot z HD, `DIR C:` Lamačovy HD diskety, `STAT C:DSK:` (1404K).
 5. **`play.py cpm3`:** v menu `1` nabootuje CP/M 3 z diskety (60K TPA).
-6. **UC.COM** (je na disketách `boot720.dsk` a `boot144.dsk`), např. v režimu `floppy`: `UC DIR`,
+6. **UC.COM** (na A: a na disketách `boot720.dsk` a `boot144.dsk`), např. v režimu `floppy`: `UC DIR`,
    `UC CD ROMWBW`, `UC GET MZ800_STD.ROM B:X.ROM`, `UC PUT A:MZSYS.COM KOPIE.COM`. Soubory se objeví
    v `mzdev/work/play/sd`.
 7. **`--luftner`:** totéž s MemExt Lüftner.

@@ -60,6 +60,9 @@ Autor: Martin Lukášek. Komunikace **česky**.
   (výstup přesměrovat do souboru).
 - **První build** v čistém klonu musí projít celý: sdílené části, CP/M a obrazy. Pak stačí jen HBIOS:
   `cd /d Source\HBIOS && Build.cmd MZ800 std`.
+  - **Po něm vždy `Source\BuildMZ800.cmd`:** build HBIOS dá do `MZ800_std.rom` standardní A:. Disk A: pro
+    MZ-800 (bez FDU, FLASH, RTC; s UC, MZSYS, MZFMT, WDATE) do `.rom` vloží až `Source/MZ800/Build.cmd`.
+  - Chyby cpmtools hledat ve výpisu: kód návratu byl i po chybě `cpmcp` 0.
 - **Výstupy** jsou v `Binary/`: `MZ800_std.rom`, `.upd`, `.com`.
 - Plný build (sdílené části + jedna platforma) trvá asi 1:20 min.
 
@@ -70,7 +73,8 @@ Autor: Martin Lukášek. Komunikace **česky**.
 - `python mzdev/tests/emu/run_console.py [PEHU|LUFTNER] [--random]`: konzole, klávesnice, tik, ZSDOS.
 - `python mzdev/tests/emu/run_loader.py`: zavaděč MZF z Unikarty až po ZSDOS (po `Source\BuildMZ800.cmd`).
 - Disky: `run_ucrd.py` (RAM disk Unikarty), `run_fd.py` (DD), `run_hd.py` (HD), `run_fmt.py` (MZFMT).
-- Boot a systémy: `run_ipl.py` (boot z diskety, MZSYS, asi 15 min), `run_cpm3.py`, `run_rwimg.py`, `run_uc.py`.
+- Boot a systémy: `run_ipl.py` (boot z diskety, MZSYS, asi 15 min), `run_cpm3.py`, `run_rwimg.py`, `run_uc.py`,
+  `run_drva.py` (obsah A:, WDATE, UC z A:).
 - Zkouška na reálném HW: `mzdev/docs/test-hw.md`.
 - Další testy podle etap v `mzdev/docs/vyvoj.md`.
 - **Emulátor spouštět vždy jen jeden najednou** (sdílený ini v `mzdev/work/emu`). Dlouhé testy na pozadí s výstupem

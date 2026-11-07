@@ -64,6 +64,8 @@ Co nejde ověřit v emulátoru. Odpovědi zapisovat sem s datem a pak promítnou
 - READDIR, RTC (příkazy 62h/63h), perzistence zápisu RAM disku (obraz ze `ramdisc.cfg`), max. velikost obrazu 16 MB.
 - Přechod z režimu MZ-700, ve kterém Unicard Manager spouští MZF, do režimu MZ-800.
 - Emuluje Unicard i FDC s přerušením od DRQ (HD úprava), nebo jen polling?
+- **Nastavení RTC** (`WDATE RR MM DD HH MM SS`): ovladač pošle příkaz $60 / $61 a hned 3 bajty dat, stav
+  nečte (UNIUTIL stav čte). Emulátor nastavení neumí. Zapíše se čas a přežije vypnutí?
 - **Lamačovo CP/M a RAM disk Unikarty:** v emulátoru bere Lamačovo CP/M 4.1 RAM disk MZ-1R18 jako `E:` a při bootu
   přepíše první 4 KB (bootovací oblast slice 0 RomWBW). Dělá to i s RAM diskem Unikarty? Pokud ano, pro Lamače
   používat jiný obraz (`UC MOUNT`).

@@ -40,7 +40,7 @@ a loader puts it into MemExt RAM and starts HBIOS. It is built as
 
 | Unit | Device | Notes |
 |---|---|---|
-| `MD0:` | RAM disk 256K in MemExt | filled from the `.rom` image |
+| `MD0:` | RAM disk 256K in MemExt | filled from the `.rom` image, see below |
 | `FD0:`-`FD3:` | floppies (`MZFDCNT`, `MZFD0TYPE`...) | see below |
 | `UCRD0:` | Unicard RAM disk, image file on the SD card | 16M = two hd1k slices, 4M = RAM floppy |
 
@@ -110,8 +110,16 @@ because ZSDOS finds it through its path when PIP renames the copy.)
 
 ## Utilities (`Binary/Apps`)
 
+The `.rom` image fills drive A: (`MD0:`) with the files of the standard
+256K ROM disk, without the tools for other hardware (`FDU`: 765 floppy
+controllers, `FLASH`: flash ROM, `RTC`: DS1302 only), plus the
+utilities below and `WDATE` (shows and sets the date and time of the
+Unicard RTC through HBIOS). `Source/MZ800/Build.cmd` makes this disk
+and puts the `.rom` images together again after the HBIOS build.
+
 | Program | Use |
 |---|---|
+| `WDATE [YY MM DD HH MM SS]` | show or set the date and time |
 | `MZSYS D: [FILE.EXT]` | write the IPL loader to the boot track of a floppy (CP/M 2.2) |
 | `MZFMT D: [/360] [/PC]` | format a double density floppy, MZ layout (or `/PC` without the boot track) |
 | `UC DIR [PATH]` | list a directory of the Unicard SD card |
@@ -132,7 +140,7 @@ because ZSDOS finds it through its path when PIP renames the copy.)
   under RomWBW. Its `TIME` reads its clock at $EA40 (CBIOS code under
   RomWBW, do not set the time with it); `UNIUTIL` needs the BDOS at
   $D942 or higher ("Not enough memory" under CP/M 2.2). Use `WDATE`
-  (on the RAM disk slices) and `UC` instead.
+  and `UC` instead.
 - Lamac's CP/M takes the RAM disk on the same ports as its drive `E:`
   and formats it when it boots (seen in the emulator): the first 4K,
   the boot area of slice 0, is overwritten. Give Lamac's CP/M its own

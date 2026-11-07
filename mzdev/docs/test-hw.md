@@ -24,7 +24,10 @@
 6. **Pak zkusit:**
    - `Z` + CR: ZSDOS, `A>`, `DIR` (utility z RAM disku);
    - `C` + CR: CP/M 2.2;
-   - `ASSIGN`, `MODE`, `TIMER`, `TIME`;
+   - `ASSIGN`, `MODE`, `TIMER`;
+   - `WDATE` (čas z RTC Unikarty), `WDATE RR MM DD HH MM SS` (nastavení), pak znovu `WDATE` a po vypnutí a
+     zapnutí ještě jednou;
+   - `UC DIR` (kořen SD karty);
    - `XM` (bez sériového portu nepůjde).
 
 **Co poslat zpět:**
@@ -144,8 +147,8 @@ kopie systémové nebo datové).
    Číslo jednotky ukazuje seznam zařízení (`Disk 3 UCRD0:`).
 4. **Očekávané:** „60K TPA“, prompt `A>` (CP/M 3) nebo `hh:mm A0:SYSTEM>` (ZPM3, čas z Unikarty).
 
-**UC.COM** (soubory SD karty z CP/M, `Binary/Apps/uc.com` je potřeba dostat na stroj: RAM disk Unikarty přes
-cpmtools, nebo disketa):
+**UC.COM** (soubory SD karty z CP/M) je na RAM disku MD0. Pod ZSDOS a CP/M 2.2 je to A:. Pod CP/M 3 / ZPM3 je
+A: bootovací disk a MD0 má jiné písmeno, ukáže ho výpis disků při bootu.
 
 - `UC DIR`, `UC CD ROMWBW`, `UC DIR`;
 - `UC GET MZ800_STD.UPD B:R.UPD` (jak dlouho trvá 128 KB?);

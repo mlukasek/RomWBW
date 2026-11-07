@@ -131,3 +131,13 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
   to řeší stejně a na reálném HW to chodí.
 - **Formátování HD zatím ne:** WRITE TRACK v HD by potřeboval obsluhu přerušení se seznamem běhů (rozpočet 42 T),
   nebo buffer celé stopy 12,5 KB. HD diskety formátuje Lamačův FORMAT4, data jsou kompatibilní.
+
+### Vlastní disk A: pro MZ-800 (autor, 2026-11-07)
+
+- **Autor chtěl mít `UC` a `WDATE` hned po bootu.** Bez nich se při testu s Unikartou bez diskety k souborům SD
+  karty ani k času nedostane.
+- **Obsah:** standardní ROM disk 256K bez `FDU`, `FLASH` a `RTC`, plus `UC`, `MZSYS`, `MZFMT` a `WDATE`.
+  - `FDU` ovládá přímo řadiče 765, `FLASH` přepaluje flash ROM (MZ-800 žádnou nemá) a `RTC` umí jen DS1302. Na
+    MZ-800 nefungují.
+  - Standardní obsah zabírá 248 KB z 256 KB, nové programy by se jinak nevešly.
+- **Kde:** v buildu `Source/MZ800` (po buildu HBIOS). Sdílený `Source/RomDsk` a build HBIOS zůstávají beze změny.
