@@ -1,6 +1,6 @@
 """RomWBW for the MZ-800 in the emulator window, for trying things by hand (standard library only).
 
-    python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd1 NAME] [--luftner] [--fresh]
+    python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 NAME] [--fd1 NAME] [--luftner] [--fresh]
 
 Prepares mzdev/work/play (once, --fresh makes it again from the current Binary/) and starts mz800emu with a
 window and its own ini (mzdev/work/play/mz800emu.ini, the emulator's own ini stays untouched):
@@ -23,7 +23,7 @@ Start modes:
     floppy   power on with boot720.dsk in drive 0: the MZ-800 ROM boots RomWBW from it
     hd       the same with boot144.dsk
     cpm3     the same with cpm3_144.dsk (then 1 at the boot loader: CP/M 3 from the floppy)
---fd1 NAME puts mzdev/work/play/dsk/NAME into drive 1 (default blank720.dsk).
+--fd0 / --fd1 NAME put mzdev/work/play/dsk/NAME into drive 0 / 1 (drive 1: blank720.dsk by default).
 
 Keys of the MZ-800 on the PC keyboard: BLANK = ` (left of 1), ALPHA = \\, GRAPH = Caps Lock, INST = Insert,
 DEL = Backspace or Delete, ESC (BREAK) = Esc or End, CTRL = left Ctrl, F1-F5 = F1-F5.
@@ -99,12 +99,14 @@ def prepare(fresh):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('mode', nargs='?', default='unicard', choices=('unicard', 'floppy', 'hd', 'cpm3'))
+    ap.add_argument('--fd0', help='disk in drive 0 instead of the one of the mode (name in mzdev/work/play/dsk)')
     ap.add_argument('--fd1', default='blank720.dsk', help='disk in drive 1 (name in mzdev/work/play/dsk)')
     ap.add_argument('--luftner', action='store_true', help='MemExt Luftner instead of PEHU')
     ap.add_argument('--fresh', action='store_true', help='make the SD card, RAM disk and disks again')
     a = ap.parse_args()
     prepare(a.fresh)
-    fd0 = {'unicard': 'lamac_prg.dsk', 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk', 'cpm3': 'cpm3_144.dsk'}[a.mode]
+    fd0 = a.fd0 or {'unicard': 'lamac_prg.dsk', 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk',
+                    'cpm3': 'cpm3_144.dsk'}[a.mode]
     fdd = {0: os.path.join(DSK, fd0), 1: os.path.join(DSK, a.fd1)}
     exe = 'mz800emu.exe'
     arch = os.path.splitext(exe)[0]
