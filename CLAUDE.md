@@ -71,6 +71,7 @@ Autor: Martin Lukášek. Komunikace **česky**.
 - `python mzdev/tests/emu/run_memext.py`: harness, mapování MemExt (PEHU, Lüftner, žádný).
 - `python mzdev/tests/emu/run_hbios.py`: start HBIOS z `Binary/MZ800_std.upd` (po buildu `MZ800 std`).
 - `python mzdev/tests/emu/run_console.py [PEHU|LUFTNER] [--random]`: konzole, klávesnice, tik, ZSDOS.
+- `python mzdev/tests/emu/run_blank.py`: historie příkazů BLANK / SHIFT+BLANK.
 - `python mzdev/tests/emu/run_loader.py`: zavaděč MZF z Unikarty až po ZSDOS (po `Source\BuildMZ800.cmd`).
 - Disky: `run_ucrd.py` (RAM disk Unikarty), `run_fd.py` (DD), `run_hd.py` (HD), `run_fmt.py` (MZFMT).
 - Boot a systémy: `run_ipl.py` (boot z diskety, MZSYS, asi 15 min), `run_cpm3.py`, `run_rwimg.py`, `run_uc.py`,

@@ -90,6 +90,19 @@
     ukončí.
   - **Vyvolání:** BLANK na prázdném řádku vrátí uložený řádek jako by byl napsaný.
   - **Ověřeno:** `run_console.py`.
+  - **Historie (2026-11-07):**
+    - zadané řádky v bufferu 256 B v bance HBIOS (`MZK_HIST`), nejnovější první, každý ukončený nulou. Nový řádek
+      posune ostatní o délku + 1, co přeteče, odpadne. Useknutý nejstarší řádek se nevyvolá (`MZK_HFIND`);
+    - stejný řádek dvakrát za sebou se uloží jednou;
+    - BLANK dá starší řádek, SHIFT+BLANK (kód $FE) novější, za nejnovějším prázdný řádek. Za nejstarším se nic
+      nestane (žádné slepené řádky jako u Lamače);
+    - nahrazení: ovladač vrátí tolik BS, kolik má řádek znaků, a pak znaky vyvolaného řádku;
+    - do historie jde i `z` z menu romldr (je to zadaný řádek);
+    - modul MZK 1099 → 1380 B, v bance HBIOS zbývá 13 840 B;
+    - **ověřeno:** `run_blank.py` (ZSDOS: krok zpět i vpřed, nahrazení rozepsaného řádku, spuštění, přetečení
+      12 × 31 B); ručním skriptem i pod CP/M 3 a ZPM3 (BS tam maže stejně).
+    - **ZPM3 s automatickým doplňováním** (`^Q`) může do řádku vložit znaky, o kterých ovladač neví. BLANK pak smaže
+      jen to, co ovladač vrátil. Při zkoušce to nevadilo.
 - **RAM disk Unikarty je hotový (etapa 3 uzavřena):** `Source/HBIOS/ucrd.asm` (modul UCRD, `DIODEV_UCRD` = $13,
   `UCRDENABLE`).
   - **Porty:** E9h banka, EBh adresa (`OUT (C),r`), EAh data přes INIR/OTIR.
@@ -322,6 +335,7 @@
   z HD diskety.
 - `python mzdev/tests/emu/run_cpm3.py`: CP/M 3 a ZPM3 z bootovací diskety 1,44M (soubory z `Source/Images`).
 - `python mzdev/tests/emu/run_uc.py`: UC.COM (DIR, GET, PUT, CD na SD kartě Unikarty).
+- `python mzdev/tests/emu/run_blank.py`: historie BLANK / SHIFT+BLANK v ZSDOS (z `.upd`, jako `run_console`).
 - `python mzdev/tests/emu/run_drva.py`: disk A: pro MZ-800 (UC, MZSYS, MZFMT, WDATE; bez FDU, FLASH, RTC), WDATE
   s datem hostitele, UC z A:. Předpokládá `Source\BuildMZ800.cmd`.
 - `python mzdev/tests/emu/run_rwimg.py`: obrazy RomWBW (`hd1k_*` jako RAM disk Unikarty, `fd144_cpm3` jako

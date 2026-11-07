@@ -10,7 +10,8 @@ unused positions are handled by the driver itself).
 """
 
 F1, INS, DELF, HOME, UP, DOWN, LEFT, RIGHT = 0xE0, 0xF0, 0xF1, 0xF2, 0xF6, 0xF7, 0xF8, 0xF9
-RECALL = 0xFF                   # BLANK: recall the last line (handled inside the driver, never returned)
+RECALL = 0xFF                   # BLANK: older line of the history (handled inside the driver, never returned)
+RECALLF = 0xFE                  # SHIFT+BLANK: newer line of the history (likewise)
 BS, TAB, CR, ESC = 0x08, 0x09, 0x0D, 0x1B
 
 # (column, bit): (normal, shifted)
@@ -21,7 +22,7 @@ KEYS = {
     (0, 3): (TAB, TAB),
     # (0, 4) ALPHA = caps lock toggle, (0, 6) GRAPH = reserved (Czech dead key in Lamac's CP/M)
     (0, 5): ('`', '`'),           # DOWN_ARROW key (Sharp down arrow / pound sign)
-    (0, 7): (RECALL, RECALL),     # BLANK: recall the last line, as in Lamac's CP/M
+    (0, 7): (RECALL, RECALLF),    # BLANK: history back (as in Lamac's CP/M), SHIFT+BLANK forward
     (1, 3): (']', '|'),
     (1, 4): ('[', '{'),
     (1, 5): ('@', '`'),

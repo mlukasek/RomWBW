@@ -54,9 +54,12 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
 - **V RomWBW to už částečně je:**
   - ZPM3 má historii příkazů v BDOS (funkce 10, asi 250 B, ^E zpět, ^W vpřed, doplňování podle historie);
   - CP/M 3 má ^W na poslední příkaz (`Doc/CPM/ZPM3.txt`).
-- **ZSDOS a CP/M 2.2** historii nemají. Doplní ji ovladač klávesnice MZ-800 v bance HBIOS: pamatuje si poslední
-  řádek ukončený CR a na vyhrazenou klávesu ho znovu pošle jako stisky. TPA to nestojí nic a funguje to s každým
-  BDOS.
+- **ZSDOS a CP/M 2.2** historii nemají. Doplní ji ovladač klávesnice MZ-800 v bance HBIOS: pamatuje si řádky
+  ukončené CR a na vyhrazenou klávesu je znovu pošle jako stisky. TPA to nestojí nic a funguje to s každým BDOS.
+- **Historie více řádků (autor, 2026-11-07):** jako u Lamače buffer 256 B, BLANK zpět. Navíc SHIFT+BLANK vpřed a
+  bez Lamačovy chyby u nejstaršího řádku. Je to jen rozšíření ovladače MZ-800, standardy RomWBW se nemění.
+- **Šipky zůstávají podle standardu RomWBW** (kódy $F6–$F9, `ansi.asm` z nich dělá sekvence ANSI), ne jako
+  WordStar u Lamače (autor, 2026-11-07: neměnit standardy RomWBW).
 
 ### Klávesy jako v CP/M Lamače (autor, 2026-11-06)
 
@@ -67,8 +70,8 @@ Rozhodnutí autora a technická rozhodnutí s důvody. Nová dopisovat na konec,
   - **GRAPH** je mrtvá klávesa pro češtinu. GRAPH + `c s z r d t n e u y a i o` dá `č š ž ř ď ť ň ě ů ý á í ó`.
     Autor si GRAPH pamatoval jako Caps Lock, ve 4.1 je to ALPHA.
 - **V portu:**
-  - BLANK = vyvolání posledního řádku v ovladači klávesnice (`mzkbd.asm`). Funguje v ZSDOS, CP/M 2.2 i v
-    programech a nestojí TPA;
+  - BLANK = historie zadaných řádků v ovladači klávesnice (`mzkbd.asm`), SHIFT+BLANK vpřed. Funguje v ZSDOS,
+    CP/M 2.2, CP/M 3, ZPM3 i v programech a nestojí TPA;
   - ALPHA = Caps Lock;
   - GRAPH zatím volná.
 - **Čeština (možná později):** potřebuje font s českými znaky (CP437 v RomWBW je nemá) a volbu kódování. Lamač

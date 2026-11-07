@@ -32,9 +32,14 @@ a loader puts it into MemExt RAM and starts HBIOS. It is built as
 - **Keyboard:** letters lower case, SHIFT upper case, ALPHA is Caps
   Lock. Cursor keys, INST/DEL, F1-F5 (with SHIFT F6-F10) give the RomWBW
   key codes.
-- **BLANK** on an empty line types the last entered line again (as in
-  Lamac's CP/M for the MZ-800). The driver follows the characters it
-  returns, so this works in every program reading lines.
+- **BLANK** recalls the entered lines (as in Lamac's CP/M for the
+  MZ-800): it replaces the line being typed with the next older one,
+  SHIFT+BLANK with the next newer one (past the newest: an empty line).
+  The driver follows the characters it returns and keeps the entered
+  lines in a 256 byte history in the HBIOS bank (a line repeated is
+  kept once). It erases the current line with backspaces and types the
+  recalled one, so this works in every OS and program reading lines
+  (ZSDOS, CP/M 2.2, CP/M 3, ZPM3) and costs no TPA.
 
 ## Disks
 

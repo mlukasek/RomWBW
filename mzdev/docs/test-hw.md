@@ -173,7 +173,7 @@ A: bootovací disk a MD0 má jiné písmeno, ukáže ho výpis disků při bootu
 | SHIFT+/ | `_` |
 | SHIFT+@ | `` ` `` |
 | SHIFT+[ / SHIFT+\ / SHIFT+] | `{` / `}` / `\|` |
-| BLANK | na prázdném řádku vyvolá poslední zadaný řádek (jako CP/M Lamače) |
+| BLANK | starší zadaný řádek z historie (jako CP/M Lamače), SHIFT+BLANK novější |
 | GRAPH | zatím nic (u Lamače mrtvá klávesa pro české znaky) |
 
 Přání k rozložení (podle zvyku z CP/M Lamače) zapsat sem nebo do `rozhodnuti.md`.

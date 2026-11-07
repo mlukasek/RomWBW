@@ -41,7 +41,8 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
 - **Šipky** posílají jako všude v RomWBW sekvence ANSI (`ESC [ A`…, překládá je `ansi.asm`). Rozumí jim
   celoobrazovkové programy pro ANSI terminál, příkazová řádka je vypíše jako `^[[A`.
 - **Editace příkazové řádky:**
-  - ZSDOS, CP/M 2.2: Backspace/DEL, `^X` (celá řádka), `^U`, `^R`; BLANK vyvolá poslední příkaz;
+  - všude: BLANK dá starší příkaz z historie, SHIFT+BLANK novější (ovladač klávesnice MZ-800, 256 B);
+  - ZSDOS, CP/M 2.2: Backspace/DEL, `^X` (celá řádka), `^U`, `^R`;
   - CP/M 3: `^A`/`^F` vlevo/vpravo, `^B` začátek/konec, `^G` znak, `^K` vpravo, `^X` vlevo, `^W` poslední
     příkaz;
   - ZPM3: `^S`/`^D` vlevo/vpravo, `^A`/`^F` o slovo, `^E`/`^W` historie, `^B`, `^G`, `^T` slovo, `^K`, `^X`,
@@ -52,7 +53,7 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
 1. **`play.py unicard`** (jako 1. test na HW):
    - zavaděč na obrazovce MZ-700, pak menu romldr se seznamem zařízení;
    - `Z` nabootuje ZSDOS;
-   - `DIR`, `ASSIGN`, psaní, šipky, BLANK (vyvolá poslední řádek), ALPHA (Caps Lock);
+   - `DIR`, `ASSIGN`, psaní, BLANK a SHIFT+BLANK (historie příkazů), ALPHA (Caps Lock);
    - `DIR C:` ukáže Lamačovu disketu (mechanika 1), `COPY B:=C:PIP.COM` zapíše na prázdnou disketu v mechanice
      0, `STAT B:DSK:`;
    - `WDATE` ukáže čas z RTC Unikarty. `WDATE RR MM DD HH MM SS` ho nastaví, emulátor ale nastavení neumí.
