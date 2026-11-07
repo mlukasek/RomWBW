@@ -41,8 +41,10 @@ Autor: Martin Lukášek. Komunikace **česky**.
     (`PLATFORM == PLT_MZ800`).
 - **Git:**
   - lokální commity průběžně;
-  - push a založení forku na GitHubu jen na pokyn autora;
-  - remote `upstream` = wwarthen/RomWBW.
+  - push jen na pokyn autora, jen do jeho forku (`origin`);
+  - remote `origin` = mlukasek/RomWBW (autorův veřejný fork, větev `mz800` od 2026-11-07; `master` a `dev` jsou
+    staré větve forku, nesahat);
+  - remote `upstream` = wwarthen/RomWBW (jen fetch, nikdy push).
 - **Sousední složky** (`..\RomWBW`, `..\mz800emu*`, `..\unicard-mk3b`, `..\Martin-MZ-FDC` …) jen číst.
 - **Necommitovat** ROM ani CG-ROM Sharp a nic z nich odvozeného.
 - **Python 3:** nástroje a testy jen se standardní knihovnou.
