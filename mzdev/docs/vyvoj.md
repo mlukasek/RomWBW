@@ -278,11 +278,20 @@
   - **Ověřeno** (`run_drva.py`): obsah A:, `WDATE` ukáže datum hostitele, `UC DIR` z A:.
   - **Nastavení času** (`WDATE RR MM DD HH MM SS` → `UCRTC_SETTIM`) emulátor neumí, příkazy $60/$61 nemá
     obsloužené. Ověří až reálná Unikarta.
-- **Další krok:** podle výsledků testů na reálném HW. Možná vylepšení:
+- **Ruční zkouška autora v emulátoru (2026-11-07) prošla:** Unikarta (ZSDOS, CP/M 3, ZPM3 z RAM disku, UC,
+  WDATE), boot z diskety DD a HD, MZFMT/MZSYS/SYSCOPY, HD diskety Lamače, CP/M 3 z diskety, Lüftner, UNIUTIL pod
+  CP/M 3, historie BLANK.
+- **Další krok: testy na reálném HW** podle `test-hw.md` (testy 1–5), otázky v `hw-otazky.md`. Podle výsledků
+  opravy.
+- **Možná vylepšení (až po HW):**
   - rychlejší zavaděč IPL (čtení celých stop);
   - formátování HD;
   - rané hlášky bootu;
-  - čeština (GRAPH).
+  - čeština (GRAPH, font s českými znaky);
+  - bonusy z etapy 8: disk se soubory SD karty, RomWBW ve flash Lüftneru (`ROMSIZE=512`);
+  - nová verze UNIUTIL (autor, možná časem).
+- **PR do upstreamu:** číslo platformy (`PLT_MZ800` = 30) a nové MID (`MID_MZ144`, `MID_MZ120`) domluvit s Waynem.
+  Push a fork na GitHubu jen na pokyn autora.
 
 ## Build
 
