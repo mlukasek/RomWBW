@@ -28,7 +28,11 @@ Co nejde ověřit v emulátoru. Odpovědi zapisovat sem s datem a pak promítnou
   - **Krok r=00:** 6 ms na WD279x/MB8876 v DD i na WD1772. Zvládnou ho autorovy mechaniky? Jinak `MZFDSTEP`.
   - **Časy:** start motoru 500 ms, usazení hlavy 15 ms. Lamač 4.1 má 189 ms a ≈ 3 ms.
   - **Strana:** DDh bit 0 = 1 je fyzická strana 1 (podle emulátoru a ROM MZ-1E05). Sedí to?
-  - **Bez diskety v mechanice:** detekce čeká na timeout ≈ 2 × 3,7 s. Hlásí se to rozumně (chyba výběru disku)?
+  - **Bez diskety v mechanice:** nechodí indexové pulzy, takže řadič příkaz sám neukončí (bez diskety nevrátí ani
+    RNF) a skončí až timeout ovladače. Detekce pak hned končí: v HD mechanice asi 3 s, v DD asi 3,7 s. Opravdu
+    řadič bez diskety nevrátí RNF? Hlásí se to v CP/M rozumně?
+    - Timeout HD (3 s) je schválně delší než RNF (5 otáček ≈ 1 s), aby DD disketa v HD pokusu neskončila jako „bez
+      diskety“.
   - **Výměna diskety:** CP/M ji pozná až po ^C (nové přihlášení jednotky). Detekce běží při každém přihlášení.
 - **Boot z diskety a formátování (od 2026-11-07):**
   - **IPL v ROM MZ-800 v normálním režimu:** hlavička s načtením i startem na $1200 (Lamač používá ROM-replace).
