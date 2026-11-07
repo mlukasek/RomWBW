@@ -54,8 +54,9 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
 3. **`play.py floppy`:**
    - ROM ukáže „IPL IS LOADING ROMWBW“, pak zavaděč z diskety a menu;
    - `1` nabootuje ZSDOS z diskety (A: = disketa), `Z` z obrazu;
-   - `MZFMT C:` (Y), `MZSYS C:`, `COPY C:ROMWBW.ROM=A:ROMWBW.ROM`, `SYSCOPY C:=A:ZSYS.SYS` (na C: je
-     `blank720.dsk`);
+   - po `1` je A: disketa, B: RAM disk MD0 (s `COPY` a `SYSCOPY`), C: mechanika 1 (`blank720.dsk`). Písmena ukáže
+     výpis `A:=FD0:0`… při bootu;
+   - `MZFMT C:` (Y), `MZSYS C:`, `B:COPY C:ROMWBW.ROM=A:ROMWBW.ROM`, `B:SYSCOPY C:=A:ZSYS.SYS` (Y);
    - ukončit emulátor a nabootovat novou disketu: `play.py floppy --fd0 blank720.dsk`.
 4. **`play.py hd --fd1 martin144.dsk`:** boot z HD, `DIR C:` Lamačovy HD diskety, `STAT C:DSK:` (1404K).
 5. **`play.py cpm3`:** v menu `1` nabootuje CP/M 3 z diskety (60K TPA).
