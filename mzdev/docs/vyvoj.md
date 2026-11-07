@@ -346,6 +346,9 @@
   - kód a data používaná při namapované VRAM musí ležet nad $2000;
   - `mzv.asm` si za hlavičkou modulu případně udělá výplň do $2000 a hlídá to při překladu;
   - zásobník HBIOS je na $0200–$04FF, takže je mimo.
+- **Lamačovo CP/M a RAM disk:** při bootu si naformátuje RAM disk MZ-1R18 (v emulátoru stejný jako RAM disk
+  Unikarty) a přepíše první 4 KB, tedy bootovací oblast slice 0. Testy s Lamačovou disketou v mechanice 0 musí
+  dostat kopii obrazu RAM disku. Podrobnosti v `zkouska-emu.md`.
 - **Emulátor a obsah RAM:** `Emu(fill='NULL')` je výchozí kvůli opakovatelnosti. `run_console.py --random` zkouší
   náhodnou RAM po zapnutí jako na skutečném stroji.
 - **Font v obrazu je komprimovaný** (LZSA2). `FNT_SELECT` ho rozbalí jen pro ovladače v podmínce `#IF ((CVDUENABLE |

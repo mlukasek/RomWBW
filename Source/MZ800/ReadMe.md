@@ -128,3 +128,7 @@ because ZSDOS finds it through its path when PIP renames the copy.)
   RTC) are not shown.
 - `UC` reads and writes files sequentially only; the Unicard firmware
   0.26 has no working SEEK.
+- Lamac's CP/M takes the RAM disk on the same ports as its drive `E:`
+  and formats it when it boots (seen in the emulator): the first 4K,
+  the boot area of slice 0, is overwritten. Give Lamac's CP/M its own
+  RAM disk image (`UC MOUNT`).

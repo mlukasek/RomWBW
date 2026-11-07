@@ -1,14 +1,17 @@
 """RomWBW for the MZ-800 in the emulator window, for trying things by hand (standard library only).
 
     python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 NAME] [--fd1 NAME] [--luftner] [--fresh]
+                                   [--new-ramdisk] [--autoboot]
 
-Prepares mzdev/work/play (once, --fresh makes it again from the current Binary/) and starts mz800emu with a
+Prepares mzdev/work/play (once, --fresh makes it again from the current Binary/, --new-ramdisk only the RAM
+disk) and starts mz800emu with a
 window and its own ini (mzdev/work/play/mz800emu.ini, the emulator's own ini stays untouched):
 
 - MemExt 512K (PEHU, --luftner for Luftner), the floppy controller with the HD modification;
 - Unicard with the SD card mzdev/work/play/sd: mz800-ldr.mzf, romwbw/MZ800_std.rom, uc.com and friends;
 - the Unicard RAM disk (the MZ-1R18 SRAM of the emulator on the same ports): 16 MB, hd1k_cpm3 + hd1k_zpm3, so
-  UCRD0:0 is CP/M 3 and UCRD0:1 ZPM3 (boot loader: 3 and 3.1);
+  UCRD0:0 is CP/M 3 and UCRD0:1 ZPM3 (boot loader: 3 and 3.1). Lamac's CP/M uses it as its RAM disk E: and
+  formats it when it boots (the first 4K: the boot area of slice 0), --new-ramdisk makes it again;
 - floppy images in mzdev/work/play/dsk (all copies, writes are kept):
     boot720.dsk   RomWBW boot disk 720K (IPL loader, ROMWBW.ROM = the full .rom, ZSDOS in the reserved tracks,
                   MZSYS, MZFMT, UC, ZSYS.SYS)
@@ -54,6 +57,7 @@ DSK = os.path.join(PLAY, 'dsk')
 RAMDISK = os.path.join(PLAY, 'ucrd16.img')
 BIN = os.path.join(ROOT, 'Binary')
 SIBLING = os.path.dirname(ROOT)
+LAMAC_BOOT = ('lamac_prg.dsk', 'lamac_sys.dsk', 'martin144.dsk')   # Lamac's CP/M boots from these
 
 
 def unicard_runtime(autoboot):
@@ -69,12 +73,12 @@ def unicard_runtime(autoboot):
     return target
 
 
-def prepare(fresh):
+def prepare(fresh, new_ramdisk=False):
     if fresh and os.path.isdir(PLAY):
         for name in ('sd', 'dsk'):
             shutil.rmtree(os.path.join(PLAY, name), ignore_errors=True)
-        if os.path.exists(RAMDISK):
-            os.remove(RAMDISK)
+    if (fresh or new_ramdisk) and os.path.exists(RAMDISK):
+        os.remove(RAMDISK)
     os.makedirs(os.path.join(SD, 'romwbw'), exist_ok=True)
     os.makedirs(DSK, exist_ok=True)
     # SD card: the loader, the image, the utilities
@@ -124,13 +128,17 @@ def main():
     ap.add_argument('--fd1', help='disk in drive 1 (name in mzdev/work/play/dsk)')
     ap.add_argument('--luftner', action='store_true', help='MemExt Luftner instead of PEHU')
     ap.add_argument('--fresh', action='store_true', help='make the SD card, RAM disk and disks again')
+    ap.add_argument('--new-ramdisk', action='store_true', help='make only the Unicard RAM disk again')
     ap.add_argument('--autoboot', action='store_true',
                     help='Q + reset starts the RomWBW loader (/unicard/mzfloader.cfg) instead of the Unicard Manager')
     a = ap.parse_args()
-    prepare(a.fresh)
+    prepare(a.fresh, a.new_ramdisk)
     print('Q + reset starts', unicard_runtime(a.autoboot))
     fd0 = a.fd0 or {'unicard': 'blank720.dsk', 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk',
                     'cpm3': 'cpm3_144.dsk'}[a.mode]
+    if fd0 in LAMAC_BOOT:
+        print('WARNING: Lamac\'s CP/M formats its RAM disk E: when it boots. It is the same RAM disk as UCRD0:, so the '
+              'boot area of slice 0 (CP/M 3, boot loader: 3) gets overwritten. Restore with --new-ramdisk.')
     fd1 = a.fd1 or ('lamac_prg.dsk' if a.mode == 'unicard' else 'blank720.dsk')
     fdd = {0: os.path.join(DSK, fd0), 1: os.path.join(DSK, fd1)}
     exe = 'mz800emu.exe'

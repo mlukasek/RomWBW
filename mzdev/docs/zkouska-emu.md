@@ -6,9 +6,10 @@ Před reálným HW. Všechno běží z kopií v `mzdev/work/play`, originály se
 
 ```
 python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JMENO] [--luftner] [--fresh]
+                               [--new-ramdisk] [--autoboot]
 ```
 
-- **Nachystá (poprvé, `--fresh` znovu z aktuálního `Binary/`):**
+- **Nachystá (poprvé, `--fresh` znovu z aktuálního `Binary/`, `--new-ramdisk` jen RAM disk):**
   - SD kartu Unikarty `mzdev/work/play/sd`: zavaděč MZF, `romwbw/MZ800_std.rom`, `uc.com`, `mzsys.com`,
     `mzfmt.com`;
   - RAM disk Unikarty 16 MB: `hd1k_cpm3` + `hd1k_zpm3`;
@@ -68,3 +69,12 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
   než na stroji. To ukáže až reálný HW.
 - **Poškozená disketa:** emulátor umí při zápisu poškodit hlavičku DSK. Pak `--fresh` (smaže a znovu vytvoří SD,
   RAM disk i diskety v `mzdev/work/play`).
+- **Lamačovo CP/M přepíše RAM disk Unikarty:**
+  - RAM disk MZ-1R18 v emulátoru (stejné porty jako RAM disk Unikarty) bere Lamačovo CP/M jako svůj RAM disk
+    `E:`. Při bootu si ho naformátuje: přepíše první 4 KB, tedy bootovací oblast slice 0 (ověřeno 2026-11-07,
+    stejných 154 bajtů z `lamac_prg.dsk` i `lamac_sys.dsk`).
+  - V menu romldr pak `3` hlásí „No boot record“. `3.1` (ZPM3) a soubory ve slice 0 zůstanou. Zápis na `E:`
+    v Lamačově CP/M by ale poškodil i je.
+  - Lamačovo CP/M nabootuje z `lamac_prg.dsk`, `lamac_sys.dsk` a `martin144.dsk` v mechanice 0. `play.py` při
+    nich varuje.
+  - **Oprava:** `--new-ramdisk` vytvoří RAM disk znovu (diskety a SD karta zůstanou).
