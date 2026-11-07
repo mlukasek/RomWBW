@@ -66,6 +66,37 @@ def make_ini(path, base, overrides):
         f.write('\n'.join(out) + '\n')
 
 
+def emu_overrides(arch, emu_work, memext='PEHU', luftner_force_init=True, ramdisk=None, fill='NULL',
+                  unicard_sd=None, unicard_fw=1, fdd=None, hd_patch=True, fdd_storage='discard'):
+    """Our ini overrides ({section: {key: value}}) for the emulator, see Emu. Also used by play.py (window)."""
+    ov = {'MEMEXT': {'connected': '1' if memext else '0', 'type': memext or 'PEHU',
+                     'luftner_force_init': '1' if luftner_force_init else '0',
+                     'flash_filepath': os.path.join(emu_work, 'luftner-flash.dat'),
+                     'filling_on_init': fill},
+          'RAMDISK': {'mr1r18_pluged': '1' if ramdisk else '0', 'mr1r18_type': 'SRAM', 'mr1r18_size': '16M',
+                      'mr1r18_filepath': os.path.abspath(ramdisk) if ramdisk else 'none.dat',
+                      'pezik_e8_pluged': '0', 'pezik_68_pluged': '0'},
+          'UNICARD': {'connected': '1' if unicard_sd else '0', 'fw_version': str(unicard_fw),
+                      'sd_root': os.path.abspath(unicard_sd) if unicard_sd else 'SD-mz800',
+                      'managed_fdc': '0x00',
+                      # our SD root has no Unicard Manager runtime ({SD}/unicard/); with the check on, the
+                      # emulator would wait for a dialog and leave the card disconnected
+                      'runtime_check_on_connect': '0'},
+          'QDISK': {'mz1f11_connected': '0'},
+          'IDE8': {'hdd0_connected': '0', 'hdd1_connected': '0'},
+          'FDC': {'connected': '1', 'hd_patch': '1' if hd_patch else '0', 'bus_xlate': 'invert'},
+          # breakpoints only for this run: the emulator would otherwise load <arch>-breakpoints.bpt from
+          # its folder and save ours there on exit (they then stop every later run)
+          'BREAKPOINTS': {'auto_load': '0', 'auto_save': '0',
+                          'bpt_file': os.path.join(emu_work, arch + '-breakpoints.bpt')}}
+    for n in range(4):
+        path = (fdd or {}).get(n, '')
+        ov['FDC']['wd279x_fdd%d_dskpath' % n] = os.path.abspath(path) if path else ''
+        mode = fdd_storage.get(n, 'discard') if isinstance(fdd_storage, dict) else fdd_storage
+        ov['FDC']['wd279x_fdd%d_storage_mode' % n] = mode
+    return ov
+
+
 class EmuError(RuntimeError):
     pass
 
@@ -84,31 +115,8 @@ class Emu:
         self.exe = exe
         arch = os.path.splitext(exe)[0]
         emu_work = os.path.join(WORK, 'emu')
-        ov = {'MEMEXT': {'connected': '1' if memext else '0', 'type': memext or 'PEHU',
-                         'luftner_force_init': '1' if luftner_force_init else '0',
-                         'flash_filepath': os.path.join(emu_work, 'luftner-flash.dat'),
-                         'filling_on_init': fill},
-              'RAMDISK': {'mr1r18_pluged': '1' if ramdisk else '0', 'mr1r18_type': 'SRAM', 'mr1r18_size': '16M',
-                          'mr1r18_filepath': os.path.abspath(ramdisk) if ramdisk else 'none.dat',
-                          'pezik_e8_pluged': '0', 'pezik_68_pluged': '0'},
-              'UNICARD': {'connected': '1' if unicard_sd else '0', 'fw_version': str(unicard_fw),
-                          'sd_root': os.path.abspath(unicard_sd) if unicard_sd else 'SD-mz800',
-                          'managed_fdc': '0x00',
-                          # our SD root has no Unicard Manager runtime ({SD}/unicard/); with the check on, the
-                          # emulator would wait for a dialog and leave the card disconnected
-                          'runtime_check_on_connect': '0'},
-              'QDISK': {'mz1f11_connected': '0'},
-              'IDE8': {'hdd0_connected': '0', 'hdd1_connected': '0'},
-              'FDC': {'connected': '1', 'hd_patch': '1' if hd_patch else '0', 'bus_xlate': 'invert'},
-              # breakpoints only for this run: the emulator would otherwise load <arch>-breakpoints.bpt from
-              # its folder and save ours there on exit (they then stop every later run)
-              'BREAKPOINTS': {'auto_load': '0', 'auto_save': '0',
-                              'bpt_file': os.path.join(emu_work, arch + '-breakpoints.bpt')}}
-        for n in range(4):
-            path = (fdd or {}).get(n, '')
-            ov['FDC']['wd279x_fdd%d_dskpath' % n] = os.path.abspath(path) if path else ''
-            mode = fdd_storage.get(n, 'discard') if isinstance(fdd_storage, dict) else fdd_storage
-            ov['FDC']['wd279x_fdd%d_storage_mode' % n] = mode
+        ov = emu_overrides(arch, emu_work, memext, luftner_force_init, ramdisk, fill, unicard_sd, unicard_fw, fdd,
+                           hd_patch, fdd_storage)
         ini = os.path.join(emu_work, arch + '.ini')
         make_ini(ini, os.path.join(EMU_DIR, arch + '.ini'), ov)
         cmd = [os.path.join(EMU_DIR, exe), '--mcp-pipe', '--headless', '--no-first-run-windows', '--no-save-ini',
