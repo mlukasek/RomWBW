@@ -103,8 +103,9 @@ class EmuError(RuntimeError):
 
 class Emu:
     def __init__(self, exe='mz800emu.exe', memext='PEHU', luftner_force_init=True, ramdisk=None, fill='NULL',
-                 unicard_sd=None, unicard_fw=1, fdd=None, hd_patch=True, fdd_storage='discard'):
+                 unicard_sd=None, unicard_fw=1, fdd=None, hd_patch=True, fdd_storage='discard', extra_args=()):
         """memext: 'PEHU', 'LUFTNER' or None (not connected).
+        extra_args: more command line options of the emulator (e.g. --cmt FILE --cmt-play-pause).
         ramdisk: path of the MZ-1R18 SRAM image (16 MB, the Unicard RAM disk stand-in) or None.
         unicard_sd: host folder used as the Unicard SD card, or None (Unicard not connected).
         unicard_fw: 1 = uc3 (Unicard mk3b fw 0.26, as on real hardware), 0 = uc1.
@@ -120,7 +121,7 @@ class Emu:
         ini = os.path.join(emu_work, arch + '.ini')
         make_ini(ini, os.path.join(EMU_DIR, arch + '.ini'), ov)
         cmd = [os.path.join(EMU_DIR, exe), '--mcp-pipe', '--headless', '--no-first-run-windows', '--no-save-ini',
-               '--config', ini]
+               '--config', ini] + list(extra_args)
         self.proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.DEVNULL, text=True, bufsize=1, cwd=EMU_DIR,
                                      encoding='utf-8', errors='replace')

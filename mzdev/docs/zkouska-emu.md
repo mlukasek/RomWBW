@@ -20,12 +20,16 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
 - **Spustí emulátor s oknem** a vlastním ini: MemExt PEHU (`--luftner` Lüftner), RAM po zapnutí náhodná, řadič
   s HD úpravou. Zápisy na diskety se ukládají.
 - **Režimy:**
-  - `unicard` (výchozí): zavaděč z Unikarty, v mechanice 0 je `lamac_prg.dsk`;
+  - `unicard` (výchozí): zavaděč z Unikarty (emulátor ho spustí jen při startu), v mechanice 0 je prázdná
+    `blank720.dsk`, v mechanice 1 `lamac_prg.dsk`;
+    - **po resetu** je menu ROM MZ-800: `C` nahraje MZF z kazety, s „CMT hackem“ emulátoru vyber
+      `mzdev/work/play/sd/mz800-ldr.mzf`. Nebo emulátor zavři a spusť `play.py` znovu;
   - `floppy`: zapnutí s `boot720.dsk` v mechanice 0, ROM MZ-800 nabootuje z diskety;
   - `hd`: totéž s `boot144.dsk`;
   - `cpm3`: totéž s `cpm3_144.dsk`.
-- `--fd0`, `--fd1` vloží jinou disketu do mechaniky 0 nebo 1 (v mechanice 1 je jinak `blank720.dsk`). Diskety jdou
-  měnit i v menu emulátoru.
+- `--fd0`, `--fd1` vloží jinou disketu do mechaniky 0 nebo 1 (v mechanice 1 je jinak `blank720.dsk`, v režimu
+  `unicard` `lamac_prg.dsk`). Diskety jdou měnit i v menu emulátoru.
+- **Reset v režimech `floppy`, `hd`, `cpm3`** vždy znovu nabootuje RomWBW z diskety v mechanice 0.
 - **Klávesy MZ-800 na PC:** BLANK = `` ` `` (vlevo od 1), ALPHA = `\`, GRAPH = Caps Lock, INST = Insert, DEL =
   Backspace, ESC = Esc nebo End, CTRL = levý Ctrl.
 
@@ -35,7 +39,8 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
    - zavaděč na obrazovce MZ-700, pak menu romldr se seznamem zařízení;
    - `Z` nabootuje ZSDOS;
    - `DIR`, `ASSIGN`, psaní, šipky, BLANK (vyvolá poslední řádek), ALPHA (Caps Lock);
-   - `DIR B:` ukáže Lamačovu disketu, `COPY C:=B:PIP.COM` zapíše na prázdnou disketu, `STAT C:DSK:`;
+   - `DIR C:` ukáže Lamačovu disketu (mechanika 1), `COPY B:=C:PIP.COM` zapíše na prázdnou disketu v mechanice
+     0, `STAT B:DSK:`;
    - `TIME`, `TIMER`.
 2. **RAM disk Unikarty:** v menu romldr `3` nabootuje CP/M 3 a `3.1` ZPM3. `DIR`, prompt ZPM3 ukazuje čas.
 3. **`play.py floppy`:**

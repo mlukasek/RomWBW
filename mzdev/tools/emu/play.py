@@ -19,11 +19,14 @@ window and its own ini (mzdev/work/play/mz800emu.ini, the emulator's own ini sta
     blank720.dsk, blank144.dsk  empty disks in Lamac's format (MZ layout)
 
 Start modes:
-    unicard  the Unicard loader runs (--run-mzf), drive 0 holds lamac_prg.dsk (default)
+    unicard  the Unicard loader runs (--run-mzf, only at the start of the emulator). Drive 0 holds the empty
+             blank720.dsk, so a reset ends in the menu of the MZ-800 ROM (C loads an MZF from the tape: with the
+             CMT hack of the emulator choose mzdev/work/play/sd/mz800-ldr.mzf); drive 1 holds lamac_prg.dsk
     floppy   power on with boot720.dsk in drive 0: the MZ-800 ROM boots RomWBW from it
     hd       the same with boot144.dsk
     cpm3     the same with cpm3_144.dsk (then 1 at the boot loader: CP/M 3 from the floppy)
---fd0 / --fd1 NAME put mzdev/work/play/dsk/NAME into drive 0 / 1 (drive 1: blank720.dsk by default).
+--fd0 / --fd1 NAME put mzdev/work/play/dsk/NAME into drive 0 / 1 (drive 1: blank720.dsk by default, in the
+unicard mode lamac_prg.dsk).
 
 Keys of the MZ-800 on the PC keyboard: BLANK = ` (left of 1), ALPHA = \\, GRAPH = Caps Lock, INST = Insert,
 DEL = Backspace or Delete, ESC (BREAK) = Esc or End, CTRL = left Ctrl, F1-F5 = F1-F5.
@@ -100,14 +103,15 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('mode', nargs='?', default='unicard', choices=('unicard', 'floppy', 'hd', 'cpm3'))
     ap.add_argument('--fd0', help='disk in drive 0 instead of the one of the mode (name in mzdev/work/play/dsk)')
-    ap.add_argument('--fd1', default='blank720.dsk', help='disk in drive 1 (name in mzdev/work/play/dsk)')
+    ap.add_argument('--fd1', help='disk in drive 1 (name in mzdev/work/play/dsk)')
     ap.add_argument('--luftner', action='store_true', help='MemExt Luftner instead of PEHU')
     ap.add_argument('--fresh', action='store_true', help='make the SD card, RAM disk and disks again')
     a = ap.parse_args()
     prepare(a.fresh)
-    fd0 = a.fd0 or {'unicard': 'lamac_prg.dsk', 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk',
+    fd0 = a.fd0 or {'unicard': 'blank720.dsk', 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk',
                     'cpm3': 'cpm3_144.dsk'}[a.mode]
-    fdd = {0: os.path.join(DSK, fd0), 1: os.path.join(DSK, a.fd1)}
+    fd1 = a.fd1 or ('lamac_prg.dsk' if a.mode == 'unicard' else 'blank720.dsk')
+    fdd = {0: os.path.join(DSK, fd0), 1: os.path.join(DSK, fd1)}
     exe = 'mz800emu.exe'
     arch = os.path.splitext(exe)[0]
     ov = emu_overrides(arch, PLAY, memext='LUFTNER' if a.luftner else 'PEHU', fill='RANDOM', ramdisk=RAMDISK,
@@ -118,7 +122,7 @@ def main():
     cmd = [os.path.join(EMU_DIR, exe), '--config', ini, '--no-save-ini', '--no-first-run-windows']
     if a.mode == 'unicard':
         cmd += ['--run-mzf', os.path.join(SD, 'mz800-ldr.mzf')]
-    print('drive 0: %s, drive 1: %s' % (fd0, a.fd1))
+    print('drive 0: %s, drive 1: %s' % (fd0, fd1))
     print(' '.join(cmd))
     subprocess.Popen(cmd, cwd=EMU_DIR)
 
