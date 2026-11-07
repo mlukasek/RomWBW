@@ -126,6 +126,33 @@ kopie systémové nebo datové).
 - **rychlost** (`DIR`, `COPY`);
 - **DD disketa v HD mechanice:** detekce nejdřív zkusí HD. Jak dlouho trvá, než se ukáže DIR?
 
+## 5. test: CP/M 3 / ZPM3 a UC.COM (od 2026-11-07)
+
+**CP/M 3 a ZPM3 z RAM disku Unikarty** (nejjednodušší):
+
+1. Na PC složit obraz RAM disku 16 MB ze dvou hotových slice RomWBW:
+
+   ```
+   copy /b Binary\hd1k_cpm3.img + Binary\hd1k_zpm3.img ucrd16.img
+   ```
+
+2. `ucrd16.img` dát na SD kartu a jeho cestu zapsat do `/unicard/ramdisc.cfg` (jako u 1. testu RAM disku).
+3. Start RomWBW z Unikarty. V menu romldr:
+   - `3` + CR nabootuje CP/M 3 (UCRD0, slice 0);
+   - `3.1` + CR nabootuje ZPM3 (slice 1).
+
+   Číslo jednotky ukazuje seznam zařízení (`Disk 3 UCRD0:`).
+4. **Očekávané:** „60K TPA“, prompt `A>` (CP/M 3) nebo `hh:mm A0:SYSTEM>` (ZPM3, čas z Unikarty).
+
+**UC.COM** (soubory SD karty z CP/M, `Binary/Apps/uc.com` je potřeba dostat na stroj: RAM disk Unikarty přes
+cpmtools, nebo disketa):
+
+- `UC DIR`, `UC CD ROMWBW`, `UC DIR`;
+- `UC GET MZ800_STD.UPD B:R.UPD` (jak dlouho trvá 128 KB?);
+- `UC PUT B:R.UPD KOPIE.UPD`, pak na PC porovnat s originálem (PUT ukládá celé záznamy po 128 B).
+
+**Co poslat zpět:** zda CP/M 3 a ZPM3 naběhnou, rychlost GET/PUT, chybová hlášení UC.
+
 ## Mapování kláves (zatím)
 
 | Klávesa MZ-800 | CP/M |

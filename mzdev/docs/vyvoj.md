@@ -244,7 +244,18 @@
   - **Ověřeno** (`run_uc.py`): DIR kořene, GET 1000 B, PUT zpět (1024 B, shoda), CD do `romwbw`.
   - **Dekodér obrazovky v testech** (`vramtext.py`) teď zná polohu kurzoru (`MZV_POS`, `MZV_CURVIS`). Dřív četl
     `_` jako mezeru, protože prázdná buňka s kurzorem vypadá stejně.
-- **Další krok:** anglická dokumentace platformy (pro PR), test-hw pro CP/M 3 a UC.
+- **Hotové obrazy RomWBW fungují beze změny** (`run_rwimg.py`):
+  - **RAM disk Unikarty** = `hd1k_cpm3.img` + `hd1k_zpm3.img` (16 MB): romldr `3` nabootuje CP/M 3, `3.1` ZPM3
+    (čas z RTC Unikarty v promptu), obojí 60K TPA;
+  - **`fd144_cpm3.img`** (formát RomWBW FD144 bez bootovací stopy MZ) jako disketa: `MID_FD144`, romldr `1`
+    nabootuje CP/M 3.
+  - Pro uživatele je to nejjednodušší cesta k CP/M 3: obraz RAM disku na SD kartě složit ze dvou slice hd1k.
+- **Anglický přehled platformy:** `Source/MZ800/ReadMe.md` (hardware, konzole, disky, boot, utility, omezení).
+- **Další krok:** podle výsledků testů na reálném HW. Možná vylepšení:
+  - rychlejší zavaděč IPL (čtení celých stop);
+  - formátování HD;
+  - rané hlášky bootu;
+  - čeština (GRAPH).
 
 ## Build
 
@@ -294,6 +305,8 @@
   z HD diskety.
 - `python mzdev/tests/emu/run_cpm3.py`: CP/M 3 a ZPM3 z bootovací diskety 1,44M (soubory z `Source/Images`).
 - `python mzdev/tests/emu/run_uc.py`: UC.COM (DIR, GET, PUT, CD na SD kartě Unikarty).
+- `python mzdev/tests/emu/run_rwimg.py`: obrazy RomWBW (`hd1k_*` jako RAM disk Unikarty, `fd144_cpm3` jako
+  disketa), boot CP/M 3 a ZPM3.
 - **Symboly:** TASM nedělá soubor symbolů. `mzdev/tools/emu/tasmlst.py` vytáhne adresy návěští z `.lst`, např.
   `Source/HBIOS/hbios_rom.lst`, `romldr.lst`.
 - **Proměnné HBIOS** číst přes `memext_read` z banky $80 (offset 0), ne přes pohled CPU. Ten ukazuje banku, která
