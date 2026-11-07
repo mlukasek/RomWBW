@@ -138,9 +138,10 @@ and puts the `.rom` images together again after the HBIOS build.
   0.26 has no working SEEK.
 - Programs that use the memory or the BIOS of Lamac's CP/M do not work
   under RomWBW. Its `TIME` reads its clock at $EA40 (CBIOS code under
-  RomWBW, do not set the time with it); `UNIUTIL` needs the BDOS at
-  $D942 or higher ("Not enough memory" under CP/M 2.2). Use `WDATE`
-  and `UC` instead.
+  RomWBW, do not set the time with it); use `WDATE` instead. `UNIUTIL`
+  (Unicard utility, Turbo Pascal 3) needs the BDOS at $D942 or higher:
+  it runs under CP/M 3, under CP/M 2.2 it stops with "Not enough
+  memory" (use `UC` there).
 - Lamac's CP/M takes the RAM disk on the same ports as its drive `E:`
   and formats it when it boots (seen in the emulator): the first 4K,
   the boot area of slice 0, is overwritten. Give Lamac's CP/M its own

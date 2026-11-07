@@ -50,7 +50,7 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
    - `WDATE` ukáže čas z RTC Unikarty. `WDATE RR MM DD HH MM SS` ho nastaví, emulátor ale nastavení neumí.
      `TIMER` ukáže tik 50 Hz.
    - `UC DIR` vypíše kořen SD karty (`UC` je na A: stejně jako `MZSYS` a `MZFMT`).
-   - **Ne Lamačův `TIME` z C:**, viz „Lamačovy programy pod RomWBW“ níže.
+   - **Ne Lamačův `TIME` z C:**, viz „Programy z Lamačových disket pod RomWBW“ níže.
 2. **RAM disk Unikarty:** v menu romldr `3` nabootuje CP/M 3 a `3.1` ZPM3. `DIR`, prompt ZPM3 ukazuje čas.
 3. **`play.py floppy`:**
    - ROM ukáže „IPL IS LOADING ROMWBW“, pak zavaděč z diskety a menu;
@@ -84,7 +84,7 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
     nich varuje.
   - **Oprava:** `--new-ramdisk` vytvoří RAM disk znovu (diskety a SD karta zůstanou).
 
-## Lamačovy programy pod RomWBW
+## Programy z Lamačových disket pod RomWBW
 
 Obecné programy pro CP/M z Lamačových disket běží. Programy, které sahají do paměti nebo BIOSu Lamačova CP/M, ne.
 RomWBW má CP/M 2.2 jinde: CCP `$D000`, BDOS `$D800` (vstup `$D806`), CBIOS `$E600–$FDFF`.
@@ -93,8 +93,9 @@ RomWBW má CP/M 2.2 jinde: CCP `$D000`, BDOS `$D800` (vstup `$D806`), CBIOS `$E6
   RomWBW je tam kód CBIOS, takže ukáže nesmysl.
   - **Čas jím nenastavovat:** přepsal by 3 bajty CBIOS.
   - Místo něj `WDATE` (viz výše).
-- **`UNIUTIL.COM`** (Turbo Pascal 3, zdroják `UU.PAS` na disketě) potřebuje BDOS aspoň na `$D942`. Pod ZSDOS
-  a CP/M 2.2 (`$D806`) skončí hláškou „Not enough memory“.
-  - Pod CP/M 3 / ZPM3 (TPA 60K) by projít měl (neověřeno).
-  - Jeho nastavení času CP/M zapisuje také na `$EA40`.
+- **`UNIUTIL.COM`** (podpora Unikarty, program autora tohoto portu, ne Lamačův; Turbo Pascal 3, zdroják `UU.PAS`
+  na disketě) potřebuje BDOS aspoň na `$D942`. Pod ZSDOS a CP/M 2.2 (`$D806`) skončí hláškou „Not enough memory“.
+  - **Pod CP/M 3 funguje** (autor, emulátor, 2026-11-07).
+  - Jeho nastavení času CP/M zapisuje na `$EA40` (hodiny Lamačova BIOSu).
+  - Nová verze pro RomWBW: možná časem (autor).
   - Soubory SD karty a obraz RAM disku obslouží `UC` (`DIR`, `CD`, `GET`, `PUT`, `MOUNT`), RTC Unikarty `WDATE`.
