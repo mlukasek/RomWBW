@@ -22,7 +22,8 @@ python mzdev/tools/emu/play.py [unicard|floppy|hd|cpm3] [--fd0 JMENO] [--fd1 JME
   s HD úpravou. Zápisy na diskety se ukládají.
 - **Režimy:**
   - `unicard` (výchozí): zavaděč z Unikarty (emulátor ho spustí jen při startu), v mechanice 0 je prázdná
-    `blank720.dsk`, v mechanice 1 `lamac_prg.dsk`;
+    `unicard0.dsk` (při každém spuštění znovu prázdná, aby reset skončil v menu ROM), v mechanice 1
+    `lamac_prg.dsk`;
     - **po resetu** je menu ROM MZ-800 (F, Q, C, M):
       - `Q` nabootuje QuickDisk Unikarty a ten spustí Unicard Manager;
       - v Manageru vyber `mz800-ldr.mzf` a spusť ho;

@@ -26,9 +26,10 @@ Unicard and starts the Unicard Manager (mz800-ldr.mzf is in the root of the SD c
 loader directly. C + reset loads from the tape, M + reset enters the monitor.
 
 Start modes:
-    unicard  the Unicard loader runs (--run-mzf, only at the start of the emulator). Drive 0 holds the empty
-             blank720.dsk, so a reset ends in the menu of the MZ-800 ROM (C loads an MZF from the tape: with the
-             CMT hack of the emulator choose mzdev/work/play/sd/mz800-ldr.mzf); drive 1 holds lamac_prg.dsk
+    unicard  the Unicard loader runs (--run-mzf, only at the start of the emulator). Drive 0 holds
+             unicard0.dsk, made empty again on every start, so a reset ends in the menu of the MZ-800 ROM (C loads
+             an MZF from the tape: with the CMT hack of the emulator choose mzdev/work/play/sd/mz800-ldr.mzf);
+             drive 1 holds lamac_prg.dsk
     floppy   power on with boot720.dsk in drive 0: the MZ-800 ROM boots RomWBW from it
     hd       the same with boot144.dsk
     cpm3     the same with cpm3_144.dsk (then 1 at the boot loader: CP/M 3 from the floppy)
@@ -58,6 +59,7 @@ RAMDISK = os.path.join(PLAY, 'ucrd16.img')
 BIN = os.path.join(ROOT, 'Binary')
 SIBLING = os.path.dirname(ROOT)
 LAMAC_BOOT = ('lamac_prg.dsk', 'lamac_sys.dsk', 'martin144.dsk')   # Lamac's CP/M boots from these
+UNICARD0 = 'unicard0.dsk'       # drive 0 of the unicard mode, made empty again on every start
 
 
 def unicard_runtime(autoboot):
@@ -134,8 +136,10 @@ def main():
     a = ap.parse_args()
     prepare(a.fresh, a.new_ramdisk)
     print('Q + reset starts', unicard_runtime(a.autoboot))
-    fd0 = a.fd0 or {'unicard': 'blank720.dsk', 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk',
+    fd0 = a.fd0 or {'unicard': UNICARD0, 'floppy': 'boot720.dsk', 'hd': 'boot144.dsk',
                     'cpm3': 'cpm3_144.dsk'}[a.mode]
+    if fd0 == UNICARD0:
+        Dsk.new(720, lamac=True).save(os.path.join(DSK, UNICARD0))   # empty on every start: a reset ends in the ROM
     if fd0 in LAMAC_BOOT:
         print('WARNING: Lamac\'s CP/M formats its RAM disk E: when it boots. It is the same RAM disk as UCRD0:, so the '
               'boot area of slice 0 (CP/M 3, boot loader: 3) gets overwritten. Restore with --new-ramdisk.')
